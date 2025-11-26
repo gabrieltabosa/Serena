@@ -1,0 +1,27 @@
+﻿@{
+    // REMOVA: @model Serena.Models.LoginViewModel
+}
+
+<h2 class="text-center mb-4 text-primary">Acesse sua Conta</h2>
+
+<form action="/Home/Login" method="post">
+
+    <div class="mb-3">
+        <label for="inputEmailLogin" class="form-label">E-mail</label>
+        <input type="email" class="form-control" id="inputEmailLogin" name="Email" required>
+    </div>
+
+    <div class="mb-3">
+        <label for="inputSenhaLogin" class="form-label">Senha</label>
+        <input type="password" class="form-control" id="inputSenhaLogin" name="Senha" required>
+    </div>
+
+    <div class="d-grid gap-2 mb-3">
+        <button type="submit" class="btn btn-primary">Entrar</button>
+    </div>
+</form>
+
+<div class="text-center mt-3">
+    Não tem uma conta?
+    <a href="#" id="link-para-cadastro" class="text-decoration-none fw-bold">**Cadastre-se**</a>
+</div>

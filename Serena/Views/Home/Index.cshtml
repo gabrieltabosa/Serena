@@ -1,0 +1,26 @@
+﻿@* Views/Home/Index.cshtml *@
+@{
+    ViewData["Title"] = "Acesso ao Sistema";
+}
+
+<div class="row justify-content-center">
+    <div class="col-md-6">
+        <div id="acesso-container" class="p-4 border rounded shadow-lg bg-white">
+            <div class="text-center p-5">
+                <div class="spinner-border text-primary" role="status">
+                    <span class="visually-hidden">Carregando...</span>
+                </div>
+                <p class="mt-2">Carregando formulário...</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
+    <script src="~/lib/jquery-mask-plugin/dist/jquery.mask.min.js"></script>
+
+    <script src="~/js/acesso.js"></script>
+}
+
