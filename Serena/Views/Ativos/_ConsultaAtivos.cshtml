@@ -1,0 +1,166 @@
+﻿@page
+@using Serena.Views.Ativos
+@model Serena.Views.Ativos._ConsultaAtivosModel
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tela Principal de Ativos</title>
+    <style>
+        /* Estilos fornecidos */
+        .container {
+            max-width: 900px;
+            margin: 40px auto;
+            padding: 20px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+        }
+
+        .row {
+            display: flex;
+            justify-content: center;
+        }
+
+        .col-md-10 {
+            width: 100%;
+        }
+
+        .text-center {
+            text-align: center;
+        }
+
+        .mb-4 {
+            margin-bottom: 1.5rem;
+        }
+
+        .table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 1rem;
+        }
+
+            .table th, .table td {
+                padding: 0.75rem;
+                border-top: 1px solid #dee2e6;
+                text-align: left;
+            }
+
+            .table thead th {
+                border-bottom: 2px solid #dee2e6;
+            }
+
+        .btn-danger {
+            background-color: #dc3545;
+            color: white;
+            border: none;
+            padding: 5px 10px;
+            cursor: pointer;
+            border-radius: 4px;
+        }
+
+        /* Novo estilo para o botão Adicionar */
+        .btn-success-custom {
+            background-color: #28a745;
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            cursor: pointer;
+            border-radius: 4px;
+            text-decoration: none; /* Para usar no <a> */
+            display: inline-block;
+        }
+
+        .alert-info {
+            padding: 10px;
+            background-color: #e2f3ff;
+            color: #004085;
+            border: 1px solid #b8daff;
+            border-radius: 4px;
+        }
+
+        .text-primary {
+            color: #007bff;
+        }
+
+        .d-flex-justify-end {
+            display: flex;
+            justify-content: flex-end;
+            margin-bottom: 1rem;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <div class="row">
+            <div class="col-md-10">
+                <h2 class="text-center mb-4 text-primary">Minha Área de Ativos</h2>
+
+                <div id="areaPrincipal">
+
+                    <div class="d-flex-justify-end">
+                        <a href="@Url.Action("AdicionarAtivoPartial", "Ativos")"
+                           id="link-para-adicionar-ativo"
+                           class="btn-success-custom">
+                            ➕ Adicionar Novo Ativo
+                        </a>
+                    </div>
+
+                    <h4 class="mb-3">Consulta de Ativos (Dados Fictícios)</h4>
+
+                    <table class="table table-striped table-hover">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Nome do Ativo</th>
+                                <th>Valor Atual</th>
+                                <th>Data Compra</th>
+                                <th>Ações</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @{
+                                // Dados Fictícios (Simulação de uma lista)
+                                var ativosFicticios = new List<dynamic>
+                                                        {
+                                                        new { Id = 101, Nome = "Ação Petro Corp.", Valor = 35.50m, Data = new DateTime(2023, 11, 20) },
+                                                        new { Id = 102, Nome = "Fundo Imobiliário Alpha", Valor = 105.80m, Data = new DateTime(2024, 05, 15) },
+                                                        new { Id = 103, Nome = "Tesouro IPCA 2035", Valor = 4500.00m, Data = new DateTime(2022, 01, 10) },
+                                                        new { Id = 104, Nome = "Ação Tech Global", Valor = 150.90m, Data = DateTime.Now }
+                                                        };
+                            }
+
+                            @foreach (var ativo in ativosFicticios)
+                            {
+                                <tr id="ativo-@ativo.Id">
+                                    <td>@ativo.Id</td>
+                                    <td>@ativo.Nome</td>
+                                    <td>@ativo.Valor.ToString("C2")</td>
+                                    <td>@ativo.Data.ToShortDateString()</td>
+                                    <td>
+                                        <button type="button"
+                                                class="btn-danger btn-sm remover-ativo"
+                                                data-id="@ativo.Id">
+                                            Remover
+                                        </button>
+                                    </td>
+                                </tr>
+                            }
+
+                            @if (!ativosFicticios.Any())
+                            {
+                                <tr><td colspan="5" class="text-center alert-info">Nenhum ativo fictício encontrado.</td></tr>
+                            }
+                        </tbody>
+                    </table>
+
+                    <p class="mt-4 text-center">
+                        <small>A remoção será simulada pelo JavaScript (remover-ativo).</small>
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+    </body>
+</html>

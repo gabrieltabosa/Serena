@@ -2,9 +2,30 @@
     // REMOVA: @model Serena.Models.LoginViewModel
 }
 
+@{
+    // 1. Simulação do Estado do Servidor (ViewBag definido pelo Controller)
+    bool loginFalhou = (ViewBag.LoginFalhou ?? false);
+
+    // 2. Simulação de Redirecionamento (Apenas representativo, o Controller faria o redirecionamento real)
+    // Se esta PartialView for carregada com a intenção de sucesso, ela "sumiria" e a próxima tela apareceria.
+
+    // Se o login for bem-sucedido, esta Partial View NÃO SERIA RETORNADA pelo Controller.
+    // Em vez disso, o Controller retornaria a Partial View de ativos.
+}
+
 <h2 class="text-center mb-4 text-primary">Acesse sua Conta</h2>
 
-<form action="/Home/Login" method="post">
+@if (loginFalhou)
+{
+    <div class="alert alert-danger" role="alert">
+        ❌ Falha no login! E-mail ou senha incorretos. (Representação do estado do servidor)
+    </div>
+}
+
+@using (Html.BeginForm("Login", "Home", FormMethod.Post))
+{
+
+
 
     <div class="mb-3">
         <label for="inputEmailLogin" class="form-label">E-mail</label>
@@ -19,9 +40,9 @@
     <div class="d-grid gap-2 mb-3">
         <button type="submit" class="btn btn-primary">Entrar</button>
     </div>
-</form>
+}
 
 <div class="text-center mt-3">
     Não tem uma conta?
-    <a href="#" id="link-para-cadastro" class="text-decoration-none fw-bold">**Cadastre-se**</a>
+    <a href="@Url.Action("CadastroPartial", "Home")" id="link-para-cadastro" class="text-decoration-none fw-bold">**Cadastre-se**</a>
 </div>

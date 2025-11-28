@@ -38,26 +38,36 @@ namespace Serena.Controllers
 
         // 4. POST de Login (Apenas simulação)
         [HttpPost]
-        public IActionResult Login()
+        public IActionResult Login(string Email, string Senha)
         {
-            // Para simulação de sucesso no front-end:
-            return RedirectToAction("Dashboard");
-        }
+            // 1. **SE O LOGIN FALHAR** (Exemplo)
+            if (Email == "teste@teste.com")
+            {
+                // Define a flag e retorna a Partial View de login novamente
+                ViewBag.LoginFalhou = true;
+                return PartialView("_LoginPartial");
+            }
 
-        // 5. POST do Cadastro (Apenas simulação)
+            // 2. **SE O LOGIN FOR BEM-SUCEDIDO** (Fluxo correto)
+            // Não retorna o _LoginPartial, retorna a próxima tela
+            return PartialView("~/Views/Ativos/_ConsultaAtivos.cshtml"); // ou retorna Json({success: true}) para AJAX
+        }
+        
+
+        
         [HttpPost]
         public IActionResult Cadastrar()
         {
-            // Para simulação de sucesso no front-end:
-            return RedirectToAction("Dashboard");
+            // *** IMPORTANTE: Simula um cadastro BEM-SUCEDIDO. ***
+            // Na prática, você faria a validação aqui.
+
+            // Retorna um JSON que o JavaScript (validador.js) interpretará como sucesso, 
+            // disparando o redirecionamento para ConsultaPartial.
+            return Json(new { success = true });
         }
 
-        // 6. Ação de simulação de sucesso
-        public IActionResult Dashboard()
-        {
-            ViewData["Message"] = "Layout e Validação JavaScript funcionando! API Pendente.";
-            return View();
-        }
+       
+        
 
         // ... (Privacy e Error permanecem inalterados)
     }

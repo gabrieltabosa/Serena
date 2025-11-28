@@ -31,5 +31,12 @@ namespace Serena.Models
         public string Cpf { get; set; }
         [Required]
         public int Telefone { get; set; }
+        [Required]
+        public EstadoCivilEnum EstadoCivil { get; set; }
+        [Required]
+        public string Rg { get; set; }
+        
+        public int apoios { get; set; }
+
     }
 }

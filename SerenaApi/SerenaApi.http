@@ -1,0 +1,6 @@
+@SerenaApi_HostAddress = http://localhost:5269
+
+GET {{SerenaApi_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
