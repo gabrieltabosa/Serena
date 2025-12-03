@@ -7,6 +7,10 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Remove="Controllers\WeatherForecastController.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
     <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="8.0.0">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
@@ -17,6 +21,7 @@
   <ItemGroup>
     <ProjectReference Include="..\DominioSerena\DominioSerena.csproj" />
     <ProjectReference Include="..\InfrastructureSerena\InfrastructureSerena.csproj" />
+    <ProjectReference Include="..\ServiceSerena\ServiceSerena.csproj" />
   </ItemGroup>
 
 </Project>

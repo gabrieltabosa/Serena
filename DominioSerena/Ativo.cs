@@ -28,9 +28,7 @@ namespace DominioSerena
         public DateTime DataAquisicao { get; set; }
         public string? NumeroDeSerie { get; set; }
 
-        public Ativo()
-        {
-        }
+       
         public Ativo(string nome, int categoriaId, DateTime dataAquisicao, string numeroDeSerie, int userId)
         {
             Nome = nome;
