@@ -12,6 +12,7 @@ namespace DominioSerena
         public int Id { get; set; }
         public string Nome { get; set; } = string.Empty;
         public int CategoriaId { get; set; }
+        public decimal Valor { get; set; }
         public string observacoes { get; set; }
         public Categoria? Categoria { get; set; }
         public int UserId { get; set; }
@@ -29,13 +30,14 @@ namespace DominioSerena
         public string? NumeroDeSerie { get; set; }
 
        
-        public Ativo(string nome, int categoriaId, DateTime dataAquisicao, string numeroDeSerie, int userId)
+        public Ativo(string nome, int categoriaId, DateTime dataAquisicao, string numeroDeSerie, int userId, decimal valor)
         {
             Nome = nome;
             CategoriaId = categoriaId;
             DataAquisicao = dataAquisicao;
             NumeroDeSerie = numeroDeSerie;
             UserId = userId;
+            Valor = valor;
         }
 
     }

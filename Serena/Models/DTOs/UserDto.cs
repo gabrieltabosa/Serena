@@ -1,23 +1,15 @@
 ﻿using System.ComponentModel.DataAnnotations;
 
-namespace Serena.Models
+namespace Serena.Models.DTOs
 {
-    public class UserViewModel
+    public class UserDto
     {
-
         public int Id { get; set; }
 
+        [Required]
         [Display(Name = "Nome completo")]
         public string Name { get; set; }
 
-        [Display(Name = "Email")]
-        public string Email { get; set; }
-
-        [Display(Name = "CPF")]
-        public string Cpf { get; set; }
-
-        [Display(Name = "RG")]
-        public string? Rg { get; set; }
 
         [Display(Name = "Telefone")]
         public string? Telefone { get; set; }
@@ -27,8 +19,6 @@ namespace Serena.Models
         public DateTime? DataNascimento { get; set; }
 
         public EnderecoViewModel? Endereco { get; set; }
-
         public ICollection<ApoioViewModel>? NumerosDeApoio { get; set; }
-
     }
 }

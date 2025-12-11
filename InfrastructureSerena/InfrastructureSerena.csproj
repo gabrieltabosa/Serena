@@ -20,8 +20,4 @@
     </PackageReference>
   </ItemGroup>
 
-  <ItemGroup>
-    <ProjectReference Include="..\DominioSerena\DominioSerena.csproj" />
-  </ItemGroup>
-
 </Project>
