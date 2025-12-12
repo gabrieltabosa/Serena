@@ -5,11 +5,11 @@ namespace Serena.Service
 {
     public interface IUserApiClient
     {
-        Task<UserDto?> AuthenticateAsync(UserViewModel dto, CancellationToken ct = default);
-        Task<bool> ResetPasswordAsync(UserViewModel dto, CancellationToken ct = default);
-        Task<UserDto?> GetByIdAsync(int id, CancellationToken ct = default);
-        Task<UserDto?> CreateAsync(UserViewModel dto, CancellationToken ct = default);
-        Task<UserDto?> UpdateAsync(int id, UserViewModel dto, CancellationToken ct = default);
-        Task<bool> DeleteAsync(int id, CancellationToken ct = default);
+        Task<UserViewModel?> AuthenticateAsync(UserViewModel dto);
+        Task<bool> ResetPasswordAsync(UserViewModel dto);
+        Task<UserViewModel?> GetByIdAsync(int id);
+        Task<UserViewModel?> CreateAsync(UserViewModel dto);
+        Task<UserViewModel?> UpdateAsync(int id, UserViewModel dto);
+        Task<bool> DeleteAsync(int id);
     }
 }

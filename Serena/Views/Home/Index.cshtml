@@ -13,9 +13,9 @@
 
             @switch (telaAtual)
             {
-                case "ConsultaAtivos":
-                    // Carrega a tela de consulta (assumindo caminho Views/Ativos/)
-                    @await Html.PartialAsync("~/Views/Ativos/_ConsultaAtivos.cshtml")
+                case "Denuncia":
+                    @* Carrega o partial de denúncia *@
+                    @await Html.PartialAsync("~/Views/Denuncia/_DenunciaPartial.cshtml")
                     break;
 
                 case "AdicionarAtivo":

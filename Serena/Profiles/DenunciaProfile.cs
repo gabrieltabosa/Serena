@@ -8,7 +8,7 @@ namespace Serena.Profiles
         public DenunciaProfile()
         {
             CreateMap<DenunciaDto, DenunciaViewModel>();
-            CreateMap<DenunciaViewModel, DenunciaDto>()
+            CreateMap<DenunciaViewModel, DenunciaDto>();
                 
 
 

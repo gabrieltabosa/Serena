@@ -21,5 +21,5 @@ namespace Serena.Profiles
             return $"***.***.{cpf.Substring(6, 3)}-{cpf.Substring(9)}";
         }
     }
-    }
+    
 }

@@ -9,6 +9,7 @@ namespace Serena.Models
 
         [Display(Name = "Nome completo")]
         public string Name { get; set; }
+        public string? Password { get; set; }
 
         [Display(Name = "Email")]
         public string Email { get; set; }

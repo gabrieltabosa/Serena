@@ -15,7 +15,7 @@ namespace Serena.Models.DTOs
         public string? Telefone { get; set; }
 
         [Display(Name = "Data de nascimento")]
-        [DataType(DataType.Date)]
+       
         public DateTime? DataNascimento { get; set; }
 
         public EnderecoViewModel? Endereco { get; set; }

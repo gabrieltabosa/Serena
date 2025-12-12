@@ -1,7 +1,4 @@
-﻿@{
-    // REMOVA: @model Serena.Models.LoginViewModel
-}
-
+﻿@model UserViewModel
 @{
     // 1. Simulação do Estado do Servidor (ViewBag definido pelo Controller)
     bool loginFalhou = (ViewBag.LoginFalhou ?? false);
@@ -22,7 +19,7 @@
     </div>
 }
 
-@using (Html.BeginForm("Login", "Home", FormMethod.Post))
+@using (Html.BeginForm("Login", "User", FormMethod.Post))
 {
 
 

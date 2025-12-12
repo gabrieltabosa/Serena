@@ -1,7 +1,13 @@
-﻿using Microsoft.Extensions.Caching.Memory;
-using Serena.Models.DTOs;
+﻿using System;
 using System.Net;
+using System.Net.Http;
+using System.Net.Http.Json;
+using System.Threading.Tasks;
+using AutoMapper;
+using Microsoft.Extensions.Caching.Memory;
+using Microsoft.Extensions.Logging;
 using Serena.Models;
+using Serena.Models.DTOs;
 
 namespace Serena.Service
 {
@@ -9,63 +15,222 @@ namespace Serena.Service
     {
         private readonly HttpClient _http;
         private readonly IMemoryCache _cache;
-        private static readonly TimeSpan CacheTtl = TimeSpan.FromSeconds(30);
+        private readonly IMapper _mapper;
+        private readonly ILogger<UserApiClient> _logger;
 
-        public UserApiClient(IHttpClientFactory factory, IMemoryCache cache)
+        // TTL: 10 minutes as requested
+        private static readonly TimeSpan CacheTtl = TimeSpan.FromMinutes(10);
+
+        public UserApiClient(IHttpClientFactory factory, IMemoryCache cache, IMapper mapper, ILogger<UserApiClient> logger)
         {
-            _http = factory.CreateClient("ApiGateway"); // nome do client configurado
+            _http = factory.CreateClient("ApiGateway");
             _cache = cache;
+            _mapper = mapper;
+            _logger = logger;
         }
 
-        public async Task<UserDto?> AuthenticateAsync(UserViewModel dto, CancellationToken ct = default)
+        /// <summary>
+        /// Authenticate: posts login data to downstream and returns a UserViewModel (including Password from the source model).
+        /// Caches the returned UserViewModel for 10 minutes under key user_{id}.
+        /// </summary>
+        public async Task<UserViewModel?> AuthenticateAsync(UserViewModel dto)
         {
-            var resp = await _http.PostAsJsonAsync("/User/api/User/login", dto, ct);
-            if (resp.StatusCode == HttpStatusCode.Unauthorized) return null;
-            resp.EnsureSuccessStatusCode();
-            return await resp.Content.ReadFromJsonAsync<UserDto>(cancellationToken: ct);
+            if (dto == null) return null;
+
+            try
+            {
+                // Map incoming viewmodel to DTO expected by API (you may have a dedicated LoginDto)
+                var loginDto = _mapper.Map<UserDto>(dto);
+
+                var resp = await _http.PostAsJsonAsync("/User/login", loginDto);
+
+                if (resp.StatusCode == HttpStatusCode.Unauthorized)
+                {
+                    return null;
+                }
+
+                resp.EnsureSuccessStatusCode();
+
+                var returnedDto = await resp.Content.ReadFromJsonAsync<UserDto>();
+                if (returnedDto == null) return null;
+
+                // Map to viewmodel and preserve the password from the original dto (per your request)
+                var vm = _mapper.Map<UserViewModel>(returnedDto);
+                vm.Password = dto.Password;
+
+                // cache by id if present
+                if (vm.Id > 0)
+                {
+                    var cacheKey = GetCacheKey(vm.Id);
+                    _cache.Set(cacheKey, vm, new MemoryCacheEntryOptions { AbsoluteExpirationRelativeToNow = CacheTtl });
+                }
+
+                return vm;
+            }
+            catch (HttpRequestException ex)
+            {
+                _logger?.LogError(ex, "HTTP error during AuthenticateAsync");
+                throw;
+            }
+            catch (Exception ex)
+            {
+                _logger?.LogError(ex, "Unexpected error during AuthenticateAsync");
+                throw;
+            }
         }
 
-        public async Task<bool> ResetPasswordAsync(UserViewModel dto, CancellationToken ct = default)
+        public async Task<bool> ResetPasswordAsync(UserViewModel dto)
         {
-            var resp = await _http.PostAsJsonAsync("/User/api/User/reset-password", dto, ct);
-            return resp.IsSuccessStatusCode;
+            if (dto == null) return false;
+
+            try
+            {
+                var resp = await _http.PostAsJsonAsync("/User/reset-password", dto);
+                return resp.IsSuccessStatusCode;
+            }
+            catch (Exception ex)
+            {
+                _logger?.LogError(ex, "Error in ResetPasswordAsync");
+                return false;
+            }
         }
 
-        public async Task<UserDto?> GetByIdAsync(int id, CancellationToken ct = default)
+        public async Task<UserViewModel?> GetByIdAsync(int id)
         {
-            var cacheKey = $"user_{id}";
-            if (_cache.TryGetValue(cacheKey, out UserDto cached)) return cached;
+            if (id <= 0) return null;
 
-            var resp = await _http.GetAsync($"/User/api/User/{id}", ct);
-            if (resp.StatusCode == HttpStatusCode.NotFound) return null;
-            resp.EnsureSuccessStatusCode();
-            var user = await resp.Content.ReadFromJsonAsync<UserDto>(cancellationToken: ct);
-            if (user != null) _cache.Set(cacheKey, user, CacheTtl);
-            return user;
+            var cacheKey = GetCacheKey(id);
+            if (_cache.TryGetValue(cacheKey, out UserViewModel cachedVm))
+            {
+                return cachedVm;
+            }
+
+            try
+            {
+                var resp = await _http.GetAsync($"/User/{id}");
+                if (resp.StatusCode == HttpStatusCode.NotFound) return null;
+
+                resp.EnsureSuccessStatusCode();
+
+                var dto = await resp.Content.ReadFromJsonAsync<UserDto>();
+                if (dto == null) return null;
+
+                var vm = _mapper.Map<UserViewModel>(dto);
+                // do NOT set Password here (we don't know it) - keep null unless you explicitly want otherwise
+
+                _cache.Set(cacheKey, vm, new MemoryCacheEntryOptions { AbsoluteExpirationRelativeToNow = CacheTtl });
+
+                return vm;
+            }
+            catch (Exception ex)
+            {
+                _logger?.LogError(ex, "Error in GetByIdAsync");
+                throw;
+            }
         }
 
-        public async Task<UserDto?> CreateAsync(UserViewModel dto, CancellationToken ct = default)
+        public async Task<UserViewModel?> CreateAsync(UserViewModel dto)
         {
-            var resp = await _http.PostAsJsonAsync("/User/api/User", dto, ct);
-            if (resp.StatusCode == HttpStatusCode.Conflict) return null;
-            resp.EnsureSuccessStatusCode();
-            return await resp.Content.ReadFromJsonAsync<UserDto>(cancellationToken: ct);
+            if (dto == null) return null;
+
+            try
+            {
+                // The API probably expects a DTO; map accordingly
+                var payload = _mapper.Map<UserDto>(dto);
+
+                var resp = await _http.PostAsJsonAsync("/User", payload);
+
+                if (resp.StatusCode == HttpStatusCode.Conflict) return null;
+
+                resp.EnsureSuccessStatusCode();
+
+                var createdDto = await resp.Content.ReadFromJsonAsync<UserDto>();
+                if (createdDto == null) return null;
+
+                var vm = _mapper.Map<UserViewModel>(createdDto);
+
+                // preserve password from submitted dto (per your request)
+                vm.Password = dto.Password;
+
+                // cache the created user for 10 minutes
+                if (vm.Id > 0)
+                {
+                    var cacheKey = GetCacheKey(vm.Id);
+                    _cache.Set(cacheKey, vm, new MemoryCacheEntryOptions { AbsoluteExpirationRelativeToNow = CacheTtl });
+                }
+
+                return vm;
+            }
+            catch (HttpRequestException ex)
+            {
+                _logger?.LogError(ex, "HTTP error in CreateAsync");
+                throw;
+            }
+            catch (Exception ex)
+            {
+                _logger?.LogError(ex, "Unexpected error in CreateAsync");
+                throw;
+            }
         }
 
-        public async Task<UserDto?> UpdateAsync(int id, UserViewModel dto, CancellationToken ct = default)
+        public async Task<UserViewModel?> UpdateAsync(int id, UserViewModel dto)
         {
-            var resp = await _http.PutAsJsonAsync($"/User/api/User/{id}", dto, ct);
-            if (resp.StatusCode == HttpStatusCode.NotFound) return null;
-            resp.EnsureSuccessStatusCode();
-            return await resp.Content.ReadFromJsonAsync<UserDto>(cancellationToken: ct);
+            if (id <= 0 || dto == null) return null;
+
+            try
+            {
+                var payload = _mapper.Map<UserDto>(dto);
+                var resp = await _http.PutAsJsonAsync($"/User/{id}", payload);
+
+                if (resp.StatusCode == HttpStatusCode.NotFound) return null;
+
+                resp.EnsureSuccessStatusCode();
+
+                var updatedDto = await resp.Content.ReadFromJsonAsync<UserDto>();
+                if (updatedDto == null) return null;
+
+                var vm = _mapper.Map<UserViewModel>(updatedDto);
+
+                // preserve password if provided
+                vm.Password = dto.Password;
+
+                // refresh cache
+                var cacheKey = GetCacheKey(id);
+                _cache.Set(cacheKey, vm, new MemoryCacheEntryOptions { AbsoluteExpirationRelativeToNow = CacheTtl });
+
+                return vm;
+            }
+            catch (Exception ex)
+            {
+                _logger?.LogError(ex, "Error in UpdateAsync");
+                throw;
+            }
         }
 
-        public async Task<bool> DeleteAsync(int id, CancellationToken ct = default)
+        public async Task<bool> DeleteAsync(int id)
         {
-            var resp = await _http.DeleteAsync($"/User/api/User/{id}", ct);
-            if (resp.StatusCode == HttpStatusCode.NotFound) return false;
-            resp.EnsureSuccessStatusCode();
-            return true;
+            if (id <= 0) return false;
+
+            try
+            {
+                var resp = await _http.DeleteAsync($"/User/{id}");
+                if (resp.StatusCode == HttpStatusCode.NotFound) return false;
+
+                resp.EnsureSuccessStatusCode();
+
+                // remove from cache if existed
+                _cache.Remove(GetCacheKey(id));
+                return true;
+            }
+            catch (Exception ex)
+            {
+                _logger?.LogError(ex, "Error in DeleteAsync");
+                throw;
+            }
         }
+
+        private static string GetCacheKey(int id) => $"user_{id}";
     }
+}
+
 }

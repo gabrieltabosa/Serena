@@ -1,104 +1,152 @@
 ﻿@model Serena.Models.UserViewModel
 
-<h2 class="text-center mb-4 text-success">Crie sua Conta</h2>
+@* Partial: Cadastro de usuário estilizado com Bootstrap.
+   Não usa tokens JWT; envia o form normalmente ao endpoint User/Create (ou adapte a action). *@
 
-@using (Html.BeginForm("Cadastro", "Home", FormMethod.Post))
+@using (Html.BeginForm("Create", "User", FormMethod.Post, new { id = "form-cadastro", @class = "needs-validation", novalidate = "novalidate" }))
 {
+    @* Se você quiser antiforgery server-side, adicione @Html.AntiForgeryToken() no controller/form.
+       Aqui o pedido foi "não use tokens", então não adicionamos JWT/Authorization. *@
 
+    <div class="card shadow-sm mx-auto my-4" style="max-width: 980px;">
+        <div class="card-body p-4">
+            <div class="d-flex align-items-center mb-3">
+                <img src="~/lib/assets/icons/Group6.png" alt="Logo" style="width:72px; height:auto;" class="me-3" />
+                <div>
+                    <h3 class="mb-0">Crie sua Conta</h3>
+                    <small class="text-muted">Preencha os dados abaixo para criar sua conta</small>
+                </div>
+            </div>
 
+            <hr />
 
-    <input type="hidden" id="inputId" name="Id" value="0">
+            <div class="row gx-3">
+                <div class="col-12 col-md-6 mb-3">
+                    <label asp-for="Name" class="form-label">Nome completo</label>
+                    <input asp-for="Name" class="form-control" autocomplete="name" placeholder="Nome completo" />
+                    <span asp-validation-for="Name" class="text-danger small"></span>
+                </div>
 
-    <div class="mb-3">
-        <label for="inputNomeCadastro" class="form-label">Nome Completo</label>
-        <input type="text" class="form-control" id="inputNomeCadastro" name="NomeCompleto" required>
-    </div>
+                <div class="col-12 col-md-6 mb-3">
+                    <label asp-for="Email" class="form-label">E-mail</label>
+                    <input asp-for="Email" class="form-control" type="email" autocomplete="email" placeholder="seu@exemplo.com" />
+                    <span asp-validation-for="Email" class="text-danger small"></span>
+                </div>
 
-    <div class="mb-3">
-        <label for="inputEmailCadastro" class="form-label">E-mail</label>
-        <input type="email" class="form-control" id="inputEmailCadastro" name="Email" required>
-    </div>
+                <div class="col-12 col-md-4 mb-3">
+                    <label asp-for="Cpf" class="form-label">CPF</label>
+                    <input asp-for="Cpf" class="form-control" placeholder="000.000.000-00" />
+                    <span asp-validation-for="Cpf" class="text-danger small"></span>
+                </div>
 
-    <div class="mb-3">
-        <label for="inputTelefone" class="form-label">Celular</label>
-        <input type="text" class="form-control" id="inputTelefone" name="Telefone" required>
-    </div>
+                <div class="col-12 col-md-4 mb-3">
+                    <label asp-for="Rg" class="form-label">RG</label>
+                    <input asp-for="Rg" class="form-control" placeholder="RG (opcional)" />
+                    <span asp-validation-for="Rg" class="text-danger small"></span>
+                </div>
 
-    <div class="mb-3">
-        <label for="inputTelefoneApoio" class="form-label">Telefone de Apoio (Opcional)</label>
-        <input type="text" class="form-control" id="inputTelefoneApoio" name="apoios">
-    </div>
+                <div class="col-12 col-md-4 mb-3">
+                    <label asp-for="Telefone" class="form-label">Telefone</label>
+                    <input asp-for="Telefone" class="form-control" placeholder="(99) 99999-9999" autocomplete="tel" />
+                    <span asp-validation-for="Telefone" class="text-danger small"></span>
+                </div>
 
-    <div class="mb-3">
-        <label for="inputCPFCadastro" class="form-label">CPF</label>
-        <input type="text" class="form-control" id="inputCPFCadastro" name="Cpf" maxlength="14" required>
-    </div>
+                <div class="col-12 col-md-6 mb-3">
+                    <label asp-for="DataNascimento" class="form-label">Data de nascimento</label>
+                    <input asp-for="DataNascimento" class="form-control" type="date" />
+                    <span asp-validation-for="DataNascimento" class="text-danger small"></span>
+                </div>
+            </div>
 
-    <div class="mb-3">
-        <label for="inputRg" class="form-label">RG</label>
-        <input type="text" class="form-control" id="inputRg" name="Rg" required>
-    </div>
+            <h5 class="mt-3">Endereço</h5>
+            <div class="row gx-3">
+                <div class="col-12 col-md-6 mb-3">
+                    <label asp-for="Endereco.Rua" class="form-label">Rua</label>
+                    <input asp-for="Endereco.Rua" class="form-control" placeholder="Ex: Rua das Flores" />
+                    <span asp-validation-for="Endereco.Rua" class="text-danger small"></span>
+                </div>
 
-    <div class="row">
-        <div class="col-md-6 mb-3">
-            <label for="inputDataNascimento" class="form-label">Data de Nascimento</label>
-            <input type="date" class="form-control" id="inputDataNascimento" name="Data" required>
+                <div class="col-6 col-md-2 mb-3">
+                    <label asp-for="Endereco.Numero" class="form-label">Número</label>
+                    <input asp-for="Endereco.Numero" class="form-control" placeholder="123" />
+                    <span asp-validation-for="Endereco.Numero" class="text-danger small"></span>
+                </div>
+
+                <div class="col-6 col-md-4 mb-3">
+                    <label asp-for="Endereco.Cidade" class="form-label">Cidade</label>
+                    <input asp-for="Endereco.Cidade" class="form-control" placeholder="Cidade" />
+                    <span asp-validation-for="Endereco.Cidade" class="text-danger small"></span>
+                </div>
+
+                <div class="col-12 col-md-4 mb-3">
+                    <label asp-for="Endereco.Estado" class="form-label">Estado</label>
+                    <input asp-for="Endereco.Estado" class="form-control" placeholder="UF" />
+                    <span asp-validation-for="Endereco.Estado" class="text-danger small"></span>
+                </div>
+            </div>
+
+            <h5 class="mt-3">Números de Apoio (opcional)</h5>
+
+            <div id="apoio-list" class="mb-3">
+                @{
+                    var apoios = Model?.NumerosDeApoio;
+                    if (apoios != null && apoios.Count > 0)
+                    {
+                        for (int i = 0; i < apoios.Count; i++)
+                        {
+                            <div class="row mb-2 apoio-row align-items-center" data-index="@i">
+                                <div class="col-5">
+                                    <input name="NumerosDeApoio[@i].Tipo" value="@apoios.ElementAt(i).Tipo" class="form-control" placeholder="Tipo (ex: mãe, amiga)" />
+                                </div>
+                                <div class="col-5">
+                                    <input name="NumerosDeApoio[@i].Numero" value="@apoios.ElementAt(i).Numero" class="form-control" placeholder="(99) 99999-9999" />
+                                </div>
+                                <div class="col-2">
+                                    <button type="button" class="btn btn-outline-danger btn-sm w-100 btn-remove-apoio">Remover</button>
+                                </div>
+                            </div>
+                        }
+                    }
+                    else
+                    {
+                        <div class="row mb-2 apoio-row" data-index="0">
+                            <div class="col-5">
+                                <input name="NumerosDeApoio[0].Tipo" class="form-control" placeholder="Tipo (ex: mãe, amiga)" />
+                            </div>
+                            <div class="col-5">
+                                <input name="NumerosDeApoio[0].Numero" class="form-control" placeholder="(99) 99999-9999" />
+                            </div>
+                            <div class="col-2">
+                                <button type="button" class="btn btn-outline-danger btn-sm w-100 btn-remove-apoio">Remover</button>
+                            </div>
+                        </div>
+                    }
+                }
+            </div>
+
+            <div class="mb-3">
+                <button type="button" id="btn-add-apoio" class="btn btn-outline-primary btn-sm">+ Adicionar número de apoio</button>
+            </div>
+
+            <h5 class="mt-3">Crie sua senha</h5>
+            <div class="row gx-3">
+                <div class="col-12 col-md-6 mb-3">
+                    <label asp-for="Password" class="form-label">Senha</label>
+                    <input id="inputSenha" asp-for="Password" name="Password" class="form-control" type="password" placeholder="Mínimo 6 caracteres" />
+                    <span asp-validation-for="Password" class="text-danger small"></span>
+                </div>
+
+                <div class="col-12 col-md-6 mb-3">
+                    <label class="form-label">Confirmar senha</label>
+                    <input id="inputConfirmSenha" class="form-control" type="password" placeholder="Repita a senha" />
+                    <div id="confirm-senha-erro" class="text-danger small" style="display:none;">As senhas não coincidem.</div>
+                </div>
+            </div>
+
+            <div class="d-flex justify-content-between align-items-center mt-4">
+                <a href="@Url.Action("LoginPartial", "Home")" class="text-decoration-none">Já tem conta? <strong>Entrar</strong></a>
+                <button type="submit" class="btn btn-success btn-lg" id="btn-submit-cadastro">Cadastrar</button>
+            </div>
         </div>
-
-        <div class="col-md-6 mb-3">
-            <label for="inputEstadoCivil" class="form-label">Estado Civil</label>
-            <select class="form-select" id="inputEstadoCivil" name="EstadoCivil" required>
-                <option value="" selected disabled>Selecione</option>
-                <option value="Solteiro">Solteiro(a)</option>
-                <option value="Casado">Casado(a)</option>
-                <option value="Divorciado">Divorciado(a)</option>
-                <option value="Viuvo">Viúvo(a)</option>
-                <option value="UniaoEstavel">União Estável</option>
-            </select>
-        </div>
-    </div>
-
-    <h5 class="mt-3 mb-3">Endereço</h5>
-    <div class="mb-3">
-        <label for="inputCEPCadastro" class="form-label">CEP</label>
-        <input type="text" class="form-control" id="inputCEPCadastro" name="Endereco.Cep" required>
-    </div>
-
-    <div class="mb-3">
-        <label for="inputRuaCadastro" class="form-label">Rua</label>
-        <input type="text" class="form-control" id="inputRuaCadastro" name="Endereco.Rua" required>
-    </div>
-
-    <div class="row">
-        <div class="col-md-6 mb-3">
-            <label for="inputEstadoCadastro" class="form-label">Estado</label>
-            <input type="text" class="form-control" id="inputEstadoCadastro" name="Endereco.Estado" required>
-        </div>
-
-        <div class="col-md-6 mb-3">
-            <label for="inputCidadeCadastro" class="form-label">Cidade</label>
-            <input type="text" class="form-control" id="inputCidadeCadastro" name="Endereco.Cidade" required>
-        </div>
-    </div>
-
-    <h5 class="mt-3 mb-3">Criação de Senha</h5>
-
-    <div class="mb-3">
-        <label for="inputSenhaCadastro" class="form-label">Crie uma Senha</label>
-        <input type="password" class="form-control" id="inputSenhaCadastro" name="Password" required>
-    </div>
-
-    <div class="mb-3">
-        <label for="inputConfirmarSenha" class="form-label">Confirmar Senha</label>
-        <input type="password" class="form-control" id="inputConfirmarSenha" name="confirmarSenha" required>
-    </div>
-
-    <div class="d-grid gap-2 mt-4">
-        <button type="submit" class="btn btn-success btn-lg">Cadastrar</button>
     </div>
 }
-
-<div class="text-center mt-3">
-    Já tem uma conta?
-    <a href="@Url.Action("LoginPartial", "Home")" id="link-para-login" class="text-decoration-none fw-bold">**Fazer Login**</a>
-</div>

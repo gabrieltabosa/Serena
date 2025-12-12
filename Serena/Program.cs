@@ -1,9 +1,14 @@
+using Serena.Profiles;
 using Serena.Service;
 
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 builder.Services.AddControllersWithViews();
+// registra profiles do assembly onde DenunciaProfile está
+builder.Services.AddAutoMapper(typeof(DenunciaProfile));
+// registra profiles do assembly onde DenunciaProfile está
+builder.Services.AddAutoMapper(typeof(UserProfile));
 
 var apiBase = builder.Configuration["ApiGateway:BaseUrl"];
 if (string.IsNullOrWhiteSpace(apiBase)) throw new InvalidOperationException("ApiGateway:BaseUrl não configurado.");
@@ -13,7 +18,7 @@ builder.Services.AddMemoryCache();
 builder.Services.AddHttpClient("ApiGateway", client =>
 {
     client.BaseAddress = new Uri(apiBase);
-    client.Timeout = TimeSpan.FromSeconds(10);
+    client.Timeout = TimeSpan.FromSeconds(100);
 });
 
 builder.Services.AddScoped<IUserApiClient, UserApiClient>();
