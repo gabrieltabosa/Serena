@@ -39,26 +39,30 @@ namespace Serena.Service
 
             try
             {
-                // Map incoming viewmodel to DTO expected by API (you may have a dedicated LoginDto)
+
+                // 1. Mapeamento
                 var loginDto = _mapper.Map<UserDto>(dto);
 
+                // 2. Chamada à API
                 var resp = await _http.PostAsJsonAsync("/User/login", loginDto);
 
-                if (resp.StatusCode == HttpStatusCode.Unauthorized)
+                // LOG PARA DEBUG
+                var content = await resp.Content.ReadAsStringAsync();
+                Console.WriteLine($"Status: {resp.StatusCode} | Body: {content}");
+
+                // 3. CORREÇÃO DA LÓGICA: Se não for sucesso (200-299), pare aqui.
+                if (!resp.IsSuccessStatusCode)
                 {
-                    return null;
+                    return null; // Retorna null para o Controller tratar como "Login Inválido"
                 }
 
-                resp.EnsureSuccessStatusCode();
-
+                // 4. Se chegou aqui, o status é 200 OK
                 var returnedDto = await resp.Content.ReadFromJsonAsync<UserDto>();
                 if (returnedDto == null) return null;
 
-                // Map to viewmodel and preserve the password from the original dto (per your request)
                 var vm = _mapper.Map<UserViewModel>(returnedDto);
                 vm.Password = dto.Password;
 
-                // cache by id if present
                 if (vm.Id > 0)
                 {
                     var cacheKey = GetCacheKey(vm.Id);
@@ -233,4 +237,4 @@ namespace Serena.Service
     }
 }
 
-}
+

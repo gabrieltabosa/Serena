@@ -1,0 +1,57 @@
+﻿@model DenunciaViewModel
+
+<div class="card shadow-sm border-0">
+    <div class="card-header bg-primary text-white py-3">
+        <h5 class="mb-0"><i class="fas fa-bullhorn me-2"></i>Registrar Nova Ocorrência</h5>
+    </div>
+    <div class="card-body p-4">
+        <form asp-action="Criar" method="post">
+            <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
+
+            <div class="row g-3">
+                <div class="col-md-6">
+                    <label class="form-label fw-bold">Tipo de Violência</label>
+                    <select asp-for="TipoViolencia" class="form-select" required>
+                        <option value="">Selecione o tipo...</option>
+                        <option value="1">Física</option>
+                        <option value="2">Psicológica</option>
+                        <option value="3">Patrimonial</option>
+                        <option value="4">Sexual</option>
+                    </select>
+                </div>
+
+                <div class="col-12">
+                    <label asp-for="Descricao" class="form-label fw-bold">Relato da Ocorrência</label>
+                    <textarea asp-for="Descricao" class="form-control" rows="4" placeholder="Descreva detalhadamente o ocorrido..."></textarea>
+                    <span asp-validation-for="Descricao" class="text-danger small"></span>
+                </div>
+
+                <hr class="my-4">
+
+                <h6 class="text-primary fw-bold"><i class="fas fa-map-marker-alt me-2"></i>Local do Fato</h6>
+                
+                <div class="col-md-7">
+                    <label class="form-label">Logradouro (Rua/Av)</label>
+                    <input asp-for="Endereco.Rua" class="form-control" />
+                </div>
+                <div class="col-md-2">
+                    <label class="form-label">Número</label>
+                    <input asp-for="Endereco.Numero" class="form-control" />
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label">Cidade</label>
+                    <input asp-for="Endereco.Cidade" class="form-control" />
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label">Estado</label>
+                    <input asp-for="Endereco.Estado" class="form-control text-uppercase" maxlength="2" />
+                </div>
+            </div>
+
+            <div class="d-grid gap-2 d-md-flex justify-content-md-end mt-4">
+                <a asp-action="Index" class="btn btn-light px-4">Cancelar</a>
+                <button type="submit" class="btn btn-primary px-5 fw-bold">Enviar Denúncia</button>
+            </div>
+        </form>
+    </div>
+</div>

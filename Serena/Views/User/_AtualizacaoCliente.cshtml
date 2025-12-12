@@ -1,0 +1,67 @@
+﻿@model UserViewModel
+
+<div class="row">
+    <div class="col-md-12">
+        <div class="card shadow-sm border-0">
+            <div class="card-body">
+                <h4 class="mb-4 text-primary"><i class="fas fa-user-edit"></i> Meu Perfil</h4>
+
+                <form asp-action="Update" method="post">
+                    <input type="hidden" asp-for="Id" />
+
+                    <div class="row">
+                        <div class="col-md-7">
+                            <div class="row g-3">
+                                <div class="col-12">
+                                    <label asp-for="Name" class="form-label"></label>
+                                    <input asp-for="Name" class="form-control" />
+                                </div>
+                                <div class="col-md-6">
+                                    <label asp-for="Email" class="form-label"></label>
+                                    <input asp-for="Email" class="form-control bg-light" readonly />
+                                </div>
+                                <div class="col-md-6">
+                                    <label asp-for="Telefone" class="form-label"></label>
+                                    <input asp-for="Telefone" class="form-control cel-mask" />
+                                </div>
+                                <div class="col-md-6">
+                                    <label asp-for="Cpf" class="form-label"></label>
+                                    <input asp-for="Cpf" class="form-control cpf-mask" />
+                                </div>
+                                <div class="col-md-6">
+                                    <label asp-for="DataNascimento" class="form-label"></label>
+                                    <input asp-for="DataNascimento" class="form-control" />
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="col-md-5 border-start">
+                            <h6><i class="fas fa-map-marker-alt"></i> Localização</h6>
+                            <div class="mb-2">
+                                <label class="small">Logradouro</label>
+                                <input asp-for="Endereco.Rua" class="form-control form-control-sm" />
+                            </div>
+                            <div class="mb-2">
+                                <label class="small">Cidade/UF</label>
+                                <div class="input-group">
+                                    <input asp-for="Endereco.Cidade" class="form-control form-control-sm" />
+                                    <input asp-for="Endereco.Estado" class="form-control form-control-sm" style="max-width: 60px;" />
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <hr class="my-4">
+
+                    <div class="d-flex justify-content-between">
+                        <button type="submit" class="btn btn-primary px-4">Atualizar Perfil</button>
+
+                        <a asp-action="ConfirmDelete" asp-route-id="@Model.Id" class="btn btn-outline-danger">
+                            <i class="fas fa-trash-alt"></i> Excluir minha conta
+                        </a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>

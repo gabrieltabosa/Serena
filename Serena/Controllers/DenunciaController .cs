@@ -1,80 +1,90 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using Serena.Models;
 using Serena.Models.DTOs;
 using Serena.Service;
-using System.Net;
+using System.Security.Claims;
+using AutoMapper;
 
 namespace Serena.Controllers
 {
-    // O controlador principal pode ter um prefixo de rota, mas para views e partials 
-    // é comum usar a rota padrão ou apenas a ação.
+    [Authorize]
+    [Route("[controller]")]
     public class DenunciaController : Controller
     {
         private readonly IDenunciaService _denunciaService;
+        private readonly IMapper _mapper;
 
-        public DenunciaController(IDenunciaService denunciaService)
+        public DenunciaController(IDenunciaService denunciaService, IMapper mapper)
         {
             _denunciaService = denunciaService;
+            _mapper = mapper;
         }
 
-        // GET /Denuncia/UserReports/{userId}
-        /// <summary>
-        /// Busca todas as denúncias de um usuário e retorna a Partial View.
-        /// Este é um cenário comum onde o front-end solicita um bloco de HTML.
-        /// </summary>
-        /// <param name="userId">ID do usuário logado.</param>
+        // Recupera o ID do usuário logado nos Cookies/Claims
+        private int GetUserId() => int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier));
+
+        // --- 1. Lista de Denúncias do Usuário ---
         [HttpGet]
-        public async Task<IActionResult> UserReports(int userId)
+        public async Task<IActionResult> Index()
         {
-            try
-            {
-                // **ATENÇÃO: Este método exige a correção mencionada na seção 1.C**
-                var denuncias = await _denunciaService.GetAllByUserAsync(userId);
+            var denuncias = await _denunciaService.GetAllByUserAsync(GetUserId());
 
-                // Retorna a Partial View com a lista de denúncias como modelo
-                return PartialView("_denunciaPartial", denuncias);
-            }
-            catch (HttpRequestException ex) when (ex.StatusCode == HttpStatusCode.NotFound)
+            var model = new DashboardViewModel<DenunciaViewModel>
             {
-                // Se a API retornar 404, retorna uma Partial View vazia ou com uma mensagem de erro
-                ViewBag.ErrorMessage = "Nenhuma denúncia encontrada para este usuário.";
-                return PartialView("_denunciaPartial", Enumerable.Empty<DenunciaViewModel>());
-            }
-            catch (Exception)
-            {
-                ViewBag.ErrorMessage = "Ocorreu um erro ao carregar as denúncias.";
-                // Retorna 500 ou um erro
-                return StatusCode(500, "Erro interno ao processar a solicitação.");
-            }
+                ActiveView = DashboardViewType.Consulta,
+                Title = "Minhas Denúncias",
+                Items = denuncias
+            };
+            return View(model);
         }
 
-        // POST /Denuncia/Create
-        /// <summary>
-        /// Processa o formulário de criação de denúncia.
-        /// </summary>
-        [HttpPost]
-        [ValidateAntiForgeryToken] // Recomendado para formulários MVC
-        public async Task<IActionResult> Create([FromForm] DenunciaDto denuncia)
+        // --- 2. Tela de Nova Denúncia ---
+        [HttpGet("Nova")]
+        public IActionResult Nova()
+        {
+            var model = new DashboardViewModel<DenunciaViewModel>
+            {
+                ActiveView = DashboardViewType.Cadastro,
+                Title = "Registrar Nova Denúncia",
+                CurrentItem = new DenunciaViewModel()
+            };
+            return View("Index", model);
+        }
+
+        // --- 3. POST: Criar Denúncia ---
+        [HttpPost("Criar")]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> Criar(DenunciaViewModel model)
         {
             if (!ModelState.IsValid)
             {
-                // Se o modelo não for válido, retorna o formulário com erros
-                return View(denuncia); // Assumindo que a view principal é 'Create'
+                return View("Index", new DashboardViewModel<DenunciaViewModel>
+                {
+                    ActiveView = DashboardViewType.Cadastro,
+                    CurrentItem = model
+                });
             }
+            var dto = _mapper.Map<DenunciaDto>(model);
 
-            try
-            {
-                var createdDenuncia = await _denunciaService.CreateAsync(denuncia);
 
-                // Após a criação bem-sucedida, redireciona o usuário
-                // Exemplo: Redirecionar para a lista de relatórios
-                return RedirectToAction(nameof(UserReports), new { userId = createdDenuncia.UserId });
-            }
-            catch (Exception ex)
+
+            await _denunciaService.CreateAsync(dto);
+            return RedirectToAction(nameof(Index));
+        }
+
+        // --- 4. Ver Detalhes ---
+        [HttpGet("Detalhes/{id}")]
+        public async Task<IActionResult> Detalhes(int id)
+        {
+            var denuncia = await _denunciaService.GetByIdAsync(id);
+            var model = new DashboardViewModel<DenunciaViewModel>
             {
-                ModelState.AddModelError("", "Ocorreu um erro ao registrar a denúncia: " + ex.Message);
-                return View(denuncia);
-            }
+                ActiveView = DashboardViewType.Atualizacao, // Usando como "Visualização"
+                Title = "Detalhes da Denúncia",
+                CurrentItem = denuncia
+            };
+            return View("Index", model);
         }
     }
 }

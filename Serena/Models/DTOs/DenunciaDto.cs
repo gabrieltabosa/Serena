@@ -8,6 +8,6 @@ namespace Serena.Models.DTOs
         public string Descricao { get; set; } = string.Empty;
         public int? UsuarioId { get; set; }
         public int TipoViolencia { get; set; }
-        public EnderecoViewModel? Endereco { get; set; }
+        public EnderecoDTO? Endereco { get; set; }
     }
 }

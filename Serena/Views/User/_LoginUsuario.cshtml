@@ -1,0 +1,43 @@
+﻿@model UserViewModel
+
+<h2 class="text-center mb-4 text-primary">Acesse sua Conta</h2>
+
+@if (!ViewData.ModelState.IsValid)
+{
+    <div class="alert alert-danger alert-dismissible fade show" role="alert">
+        <i class="fas fa-exclamation-circle me-2"></i>
+        @Html.ValidationSummary(true, "")
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+}
+
+@using (Html.BeginForm("Login", "User", FormMethod.Post))
+{
+    @Html.AntiForgeryToken()
+
+    <div class="mb-3">
+        <label asp-for="Email" class="form-label">E-mail</label>
+        @* O name deve ser igual à propriedade na ViewModel: Email *@
+        <input type="email" class="form-control" asp-for="Email" name="Email" placeholder="seu@email.com" required>
+        <span asp-validation-for="Email" class="text-danger small"></span>
+    </div>
+
+    <div class="mb-3">
+        <label asp-for="Password" class="form-label">Senha</label>
+        @* AJUSTE CRÍTICO: O name deve ser "Password" para bater com a UserViewModel *@
+        <input type="password" class="form-control" asp-for="Password" name="Password" placeholder="Sua senha secreta" required>
+        <span asp-validation-for="Password" class="text-danger small"></span>
+    </div>
+
+    <div class="d-grid gap-2 mb-3">
+        <button type="submit" class="btn btn-primary btn-lg">
+            <i class="fas fa-sign-in-alt me-2"></i>Entrar
+        </button>
+    </div>
+}
+
+<div class="text-center mt-3">
+    <span class="text-muted">Não tem uma conta?</span>
+    @* Ajustado para apontar para a Action que criamos no UserController *@
+    <a href="@Url.Action("ViewCadastro", "User")" class="text-decoration-none fw-bold ms-1">Cadastre-se</a>
+</div>

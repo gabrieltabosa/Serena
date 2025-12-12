@@ -10,6 +10,13 @@ namespace Serena.Models.DTOs
         [Display(Name = "Nome completo")]
         public string Name { get; set; }
 
+        public string Email { get; set; }
+
+        public string? Rg { get; set; }
+        public string? Cpf { get; set; }
+
+        public string? Password { get; set; }
+
 
         [Display(Name = "Telefone")]
         public string? Telefone { get; set; }

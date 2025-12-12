@@ -1,0 +1,39 @@
+﻿@model Serena.Models.DashboardViewModel<DenunciaViewModel>
+
+@{
+    ViewData["Title"] = Model.Title;
+}
+
+<div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2>@Model.Title</h2>
+        <div>
+            @if (Model.ActiveView != DashboardViewType.Consulta)
+            {
+                <a asp-action="Index" class="btn btn-outline-secondary">
+                    <i class="fas fa-arrow-left"></i> Voltar para Lista
+                </a>
+            }
+            <a asp-action="Nova" class="btn btn-primary">
+                <i class="fas fa-plus"></i> Nova Denúncia
+            </a>
+        </div>
+    </div>
+
+    <div id="denuncia-content">
+        @switch (Model.ActiveView)
+        {
+            case DashboardViewType.Consulta:
+                <partial name="_DenunciaConsulta" model="@Model.Items" />
+                break;
+
+            case DashboardViewType.Cadastro:
+                <partial name="_DenunciaCadastro" model="@Model.CurrentItem" />
+                break;
+
+            case DashboardViewType.Atualizacao:
+                <partial name="_DenunciaDetalhes" model="@Model.CurrentItem" />
+                break;
+        }
+    </div>
+</div>

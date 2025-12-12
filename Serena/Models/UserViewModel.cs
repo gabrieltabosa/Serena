@@ -18,7 +18,7 @@ namespace Serena.Models
         public string Cpf { get; set; }
 
         [Display(Name = "RG")]
-        public string? Rg { get; set; }
+        public string Rg { get; set; }
 
         [Display(Name = "Telefone")]
         public string? Telefone { get; set; }
@@ -30,6 +30,9 @@ namespace Serena.Models
         public EnderecoViewModel? Endereco { get; set; }
 
         public ICollection<ApoioViewModel>? NumerosDeApoio { get; set; }
+
+        [Display(Name = "Lembrar-me")]
+        public bool RememberMe { get; set; }
 
     }
 }
