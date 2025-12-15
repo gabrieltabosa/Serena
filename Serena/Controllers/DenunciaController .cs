@@ -65,11 +65,14 @@ namespace Serena.Controllers
                     CurrentItem = model
                 });
             }
+
+            // 🔥 AQUI ESTÁ O PONTO-CHAVE
+            model.UsuarioId = GetUserId();
+
             var dto = _mapper.Map<DenunciaDto>(model);
 
-
-
             await _denunciaService.CreateAsync(dto);
+
             return RedirectToAction(nameof(Index));
         }
 

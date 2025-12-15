@@ -175,7 +175,7 @@ namespace Serena.Controllers
             // 3. Configurar a expiração de 10 minutos aqui também (Garantia extra)
             var authProperties = new AuthenticationProperties
             {
-                IsPersistent = true, // Mantém o cookie mesmo se fechar o navegador
+                IsPersistent = false, // Mantém o cookie mesmo se fechar o navegador
                 ExpiresUtc = DateTimeOffset.UtcNow.AddMinutes(10)
             };
 
