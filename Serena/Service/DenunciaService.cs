@@ -19,7 +19,11 @@ namespace Serena.Service
         public async Task<DenunciaViewModel> CreateAsync(DenunciaDto model)
         {
             var resp = await _http.PostAsJsonAsync("/Denuncias", model);
-            resp.EnsureSuccessStatusCode();
+            if (!resp.IsSuccessStatusCode)
+            {
+                var error = await resp.Content.ReadAsStringAsync();
+                throw new ApplicationException($"Erro ao criar denúncia: {error}");
+            }
             var created = await resp.Content.ReadFromJsonAsync<DenunciaViewModel>();
             return created!;
         }

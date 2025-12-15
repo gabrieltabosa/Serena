@@ -11,7 +11,7 @@
             <div class="row g-3">
                 <div class="col-md-6">
                     <label class="form-label fw-bold">Tipo de Violência</label>
-                    <select asp-for="TipoViolencia" class="form-select" required>
+                    <select asp-for="Violencia" class="form-select" required>
                         <option value="">Selecione o tipo...</option>
                         <option value="1">Física</option>
                         <option value="2">Psicológica</option>
@@ -41,6 +41,10 @@
                 <div class="col-md-6">
                     <label class="form-label">Cidade</label>
                     <input asp-for="Endereco.Cidade" class="form-control" />
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label">Bairro</label>
+                    <input asp-for="Endereco.Bairro" class="form-control" />
                 </div>
                 <div class="col-md-6">
                     <label class="form-label">Estado</label>

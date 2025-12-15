@@ -6,7 +6,7 @@
         public string Descricao { get; set; } = string.Empty;
         public EnderecoViewModel? Endereco { get; set; }
         public string Status { get; set; } = string.Empty;
-        public TipoViolenciaViewModel TipoViolencia { get; set; }
+        public string Violencia { get; set; } = string.Empty;
         public DateTime CriadoEm { get; set; }
     }
 }

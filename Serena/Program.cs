@@ -1,11 +1,19 @@
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Serena.Profiles;
 using Serena.Service;
+using System.Text.Json.Serialization;
 
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
-builder.Services.AddControllersWithViews();
+builder.Services
+    .AddControllersWithViews()
+    .AddJsonOptions(options =>
+    {
+        options.JsonSerializerOptions.Converters.Add(
+            new JsonStringEnumConverter()
+        );
+    });
 // registra profiles do assembly onde DenunciaProfile está
 builder.Services.AddAutoMapper(typeof(DenunciaProfile));
 // registra profiles do assembly onde DenunciaProfile está
