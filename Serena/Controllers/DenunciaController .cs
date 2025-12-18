@@ -88,11 +88,11 @@ namespace Serena.Controllers
             return View("Index", model);
         }
 
-       
+
         [HttpPost("Criar")]
         public async Task<IActionResult> Criar(
-            DashboardViewModel<DenunciaViewModel> model
-            )
+             DashboardViewModel<DenunciaViewModel> model
+             )
         {
             if (!SessaoValida(model.SessionId))
                 return SessaoExpirada();
@@ -116,7 +116,7 @@ namespace Serena.Controllers
             });
         }
 
-      
+
         [HttpGet("Detalhes/{id}")]
         public async Task<IActionResult> Detalhes(
             int id,
