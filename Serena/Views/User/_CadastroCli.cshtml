@@ -5,7 +5,7 @@
         <h4 class="mb-0"><i class="fas fa-user-plus"></i> Criar Nova Conta</h4>
     </div>
     <div class="card-body">
-        <form asp-action="Create" method="post">
+        <form asp-action="Create" method="post" id="fromCadastro">
             <div asp-validation-summary="ModelOnly" class="text-danger"></div>
 
             <h5 class="text-muted border-bottom pb-2">Dados Pessoais</h5>
@@ -22,11 +22,11 @@
                 </div>
                 <div class="col-md-4">
                     <label asp-for="Cpf" class="form-label"></label>
-                    <input asp-for="Cpf" class="form-control cpf-mask" placeholder="000.000.000-00" />
+                    <input asp-for="Cpf" class="form-control cpf-mask" placeholder="000.000.000-00" maxlength="14" inputmode="numeric" />
                 </div>
                 <div class="col-md-4">
                     <label asp-for="Rg" class="form-label"></label>
-                    <input asp-for="Rg" class="form-control" />
+                    <input asp-for="Rg" class="form-control" maxlength="8" />
                 </div>
                 <div class="col-md-4">
                     <label asp-for="DataNascimento" class="form-label"></label>
@@ -34,19 +34,40 @@
                 </div>
                 <div class="col-md-6">
                     <label asp-for="Telefone" class="form-label"></label>
-                    <input asp-for="Telefone" class="form-control cel-mask" placeholder="(00) 00000-0000" />
+                    <input asp-for="Telefone" class="form-control cel-mask" placeholder="(00) 00000-0000" maxlength="15" inputmode="numeric" />
                 </div>
                 <div class="col-md-6">
                     <label asp-for="Password" class="form-label">Senha</label>
                     <input asp-for="Password" type="password" class="form-control" />
                 </div>
+                <div class="col-md-6">
+                    <label class="form-label">Confirmar Senha</label>
+                    <input type="password"
+                           id="ConfirmPassword"
+                           class="form-control" />
+                    <small class="text-danger d-none" id="confirmPasswordError">
+                        As senhas não coincidem
+                    </small>
+                </div>
             </div>
 
-            <h5 class="text-muted border-bottom pb-2">Endereço (Opcional)</h5>
+            <h5 class="text-muted border-bottom pb-2">Endereço</h5>
             <div class="row g-3 mb-4">
                 <div class="col-md-7">
                     <label>Logradouro</label>
                     <input asp-for="Endereco.Rua" class="form-control" />
+                </div>
+                <div class="col-md-7">
+                    <label>Bairro</label>
+                    <input asp-for="Endereco.Bairro" class="form-control" />
+                </div>
+                <div class="col-md-3">
+                    <label>Estado</label>
+                    <input asp-for="Endereco.Estado" class="form-control" />
+                </div>
+                <div class="col-md-7">
+                    <label>Cidade</label>
+                    <input asp-for="Endereco.Cidade" class="form-control" />
                 </div>
                 <div class="col-md-2">
                     <label>Nº</label>

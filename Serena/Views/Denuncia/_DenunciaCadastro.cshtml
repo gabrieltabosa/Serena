@@ -1,17 +1,18 @@
-﻿@model DenunciaViewModel
+﻿@model DashboardViewModel<DenunciaViewModel>
+
 
 <div class="card shadow-sm border-0">
     <div class="card-header bg-primary text-white py-3">
         <h5 class="mb-0"><i class="fas fa-bullhorn me-2"></i>Registrar Nova Ocorrência</h5>
     </div>
     <div class="card-body p-4">
-        <form asp-action="Criar" method="post">
+        <form asp-action="Criar" method="post" id="fromCadastro">
             <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
 
             <div class="row g-3">
                 <div class="col-md-6">
                     <label class="form-label fw-bold">Tipo de Violência</label>
-                    <select asp-for="TipoViolencia" class="form-select" required>
+                    <select asp-for="CurrentItem.TipoViolencia" class="form-select" required>
                         <option value="violenciaFisica">Física</option>
                         <option value="violenciaPsicologica">Psicológica</option>
                         <option value="violenciaPatrimonial">Patrimonial</option>
@@ -21,39 +22,41 @@
                 </div>
 
                 <div class="col-12">
-                    <label asp-for="Descricao" class="form-label fw-bold">Relato da Ocorrência</label>
-                    <textarea asp-for="Descricao" class="form-control" rows="4" placeholder="Descreva detalhadamente o ocorrido..."></textarea>
-                    <span asp-validation-for="Descricao" class="text-danger small"></span>
+                    <label asp-for="CurrentItem.Descricao" class="form-label fw-bold">Relato da Ocorrência</label>
+                    <textarea asp-for="CurrentItem.Descricao" class="form-control" rows="4" placeholder="Descreva detalhadamente o ocorrido..."></textarea>
+                    <span asp-validation-for="CurrentItem.Descricao" class="text-danger small"></span>
                 </div>
-
+                <input type="hidden" asp-for="SessionId" />
+                <input type="hidden" asp-for="UserId" />
                 <hr class="my-4">
 
                 <h6 class="text-primary fw-bold"><i class="fas fa-map-marker-alt me-2"></i>Local do Fato</h6>
                 
                 <div class="col-md-7">
                     <label class="form-label">Logradouro (Rua/Av)</label>
-                    <input asp-for="Endereco.Rua" class="form-control" />
+                    <input asp-for="CurrentItem.Endereco.Rua" class="form-control" />
                 </div>
                 <div class="col-md-2">
                     <label class="form-label">Número</label>
-                    <input asp-for="Endereco.Numero" class="form-control" />
+                    <input asp-for="CurrentItem.Endereco.Numero" class="form-control" />
                 </div>
                 <div class="col-md-6">
                     <label class="form-label">Cidade</label>
-                    <input asp-for="Endereco.Cidade" class="form-control" />
+                    <input asp-for="CurrentItem.Endereco.Cidade" class="form-control" />
                 </div>
                 <div class="col-md-6">
                     <label class="form-label">Bairro</label>
-                    <input asp-for="Endereco.Bairro" class="form-control" />
+                    <input asp-for="CurrentItem.Endereco.Bairro" class="form-control" />
                 </div>
                 <div class="col-md-6">
                     <label class="form-label">Estado</label>
-                    <input asp-for="Endereco.Estado" class="form-control text-uppercase" maxlength="2" />
+                    <input asp-for="CurrentItem.Endereco.Estado" class="form-control text-uppercase" maxlength="2" />
                 </div>
             </div>
 
             <div class="d-grid gap-2 d-md-flex justify-content-md-end mt-4">
-                <a asp-action="Index" class="btn btn-light px-4">Cancelar</a>
+                <a asp-action="Index" asp-route-sessionId="@Model.SessionId"
+                   asp-route-userId="@Model.UserId" class="btn btn-light px-4">Cancelar</a>
                 <button type="submit" class="btn btn-primary px-5 fw-bold">Enviar Denúncia</button>
             </div>
         </form>

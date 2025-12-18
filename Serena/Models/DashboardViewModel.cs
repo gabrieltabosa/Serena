@@ -10,6 +10,9 @@
         // Para telas de FORMULÁRIO (Login, Cadastro, Atualização, Exclusão)
         public T CurrentItem { get; set; } = new T();
 
+        public string? SessionId { get; set; }
+        public int? UserId { get; set; }
+
         public string Title { get; set; } = "Gerenciamento";
     }
 }

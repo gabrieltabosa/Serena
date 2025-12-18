@@ -1,4 +1,4 @@
-﻿@model UserViewModel
+﻿@model DashboardViewModel<UserViewModel>
 
 <div class="card border-danger shadow-sm">
     <div class="card-body text-center p-5">
@@ -7,14 +7,15 @@
         </div>
         <h3 class="mb-3">Você tem certeza?</h3>
         <p class="text-muted mb-4">
-            Você está prestes a excluir a conta de <strong>@Model.Name</strong>.<br>
+            Você está prestes a excluir a conta de <strong>@Model.CurrentItem.Name</strong>.<br>
             Esta ação removerá seu acesso e anonimizará suas denúncias.
         </p>
 
         <form asp-action="Delete" method="post">
-            <input type="hidden" asp-for="Id" />
+            <input type="hidden" asp-for="CurrentItem.Id" />
             <button type="submit" class="btn btn-danger btn-lg px-5 me-2">Sim, Excluir</button>
-            <a asp-action="Edit" asp-route-id="@Model.Id" class="btn btn-light btn-lg px-5">Cancelar</a>
+            <a asp-action="Edit" asp-route-userId="@Model.UserId"
+               asp-route-sessionId="@Model.SessionId"> class="btn btn-light btn-lg px-5">Cancelar</a>
         </form>
     </div>
 </div>

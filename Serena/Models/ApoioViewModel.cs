@@ -6,8 +6,8 @@ namespace Serena.Models
     {
         public int Id { get; set; }
 
-        [Display(Name = "Tipo de apoio")]
-        public string Tipo { get; set; }
+        
+        public string Nome { get; set; }
 
         [Display(Name = "Número")]
         public string Numero { get; set; }

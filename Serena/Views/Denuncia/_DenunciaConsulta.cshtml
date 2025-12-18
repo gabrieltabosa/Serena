@@ -1,4 +1,7 @@
-﻿@model IEnumerable<DenunciaViewModel>
+﻿@model DashboardViewModel<DenunciaViewModel>
+
+
+
 
 <div class="card shadow-sm border-0">
     <div class="card-body p-0">
@@ -13,7 +16,7 @@
                     </tr>
                 </thead>
                 <tbody>
-                    @foreach (var item in Model)
+                    @foreach (var item in Model.Items)
                     {
                         <tr>
                             <td class="ps-4">@item.CriadoEm.ToString("dd/MM/yyyy HH:mm")</td>
@@ -28,13 +31,17 @@
                                 <span class="badge @statusClass">@item.Status</span>
                             </td>
                             <td class="text-end pe-4">
-                                <a asp-action="Detalhes" asp-route-id="@item.Id" class="btn btn-sm btn-outline-primary">
+                                <a asp-action="Detalhes"
+                                   asp-route-id="@item.Id"
+                                   asp-route-sessionId="@Model.SessionId"
+                                   asp-route-userId="@Model.UserId"
+                                   class="btn btn-sm btn-outline-primary">
                                     <i class="fas fa-search-plus"></i> Ver Detalhes
                                 </a>
                             </td>
                         </tr>
                     }
-                    @if (!Model.Any())
+                    @if (!Model.Items.Any())
                     {
                         <tr>
                             <td colspan="4" class="text-center py-4 text-muted">Nenhuma denúncia registrada até o momento.</td>

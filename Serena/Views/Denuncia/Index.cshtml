@@ -2,19 +2,30 @@
 
 @{
     ViewData["Title"] = Model.Title;
+    // GARANTIA DEFENSIVA
+    var sessionId = Model.SessionId;
+    var userId = Model.UserId;
 }
 
 <div class="container mt-4">
     <div class="d-flex justify-content-between align-items-center mb-4">
         <h2>@Model.Title</h2>
+
         <div>
             @if (Model.ActiveView != DashboardViewType.Consulta)
             {
-                <a asp-action="Index" class="btn btn-outline-secondary">
+                <a asp-action="Index"
+                   asp-route-sessionId="@Model.SessionId"
+                   asp-route-userId="@Model.UserId"
+                   class="btn btn-outline-secondary">
                     <i class="fas fa-arrow-left"></i> Voltar para Lista
                 </a>
             }
-            <a asp-action="Nova" class="btn btn-primary">
+
+            <a asp-action="Nova"
+               asp-route-sessionId="@Model.SessionId"
+               asp-route-userId="@Model.UserId"
+               class="btn btn-primary">
                 <i class="fas fa-plus"></i> Nova Denúncia
             </a>
         </div>
@@ -24,16 +35,17 @@
         @switch (Model.ActiveView)
         {
             case DashboardViewType.Consulta:
-                <partial name="_DenunciaConsulta" model="@Model.Items" />
+                <partial name="_DenunciaConsulta" model="@Model" />
                 break;
 
             case DashboardViewType.Cadastro:
-                <partial name="_DenunciaCadastro" model="@Model.CurrentItem" />
+                <partial name="_DenunciaCadastro" model="@Model" />
                 break;
 
             case DashboardViewType.Atualizacao:
-                <partial name="_DenunciaDetalhes" model="@Model.CurrentItem" />
+                <partial name="_DenunciaDetalhes" model="@Model" />
                 break;
         }
     </div>
 </div>
+

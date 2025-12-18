@@ -11,6 +11,13 @@ using Serena.Models.DTOs;
 
 namespace Serena.Service
 {
+    /// <summary>
+    /// Client responsável APENAS por comunicar com a API de Usuário.
+    /// ❌ NÃO gerencia sessão
+    /// ❌ NÃO controla login
+    /// ❌ NÃO guarda senha
+    /// ✅ Apenas faz chamadas HTTP + cache temporário por sessão
+    /// </summary>
     public class UserApiClient : IUserApiClient
     {
         private readonly HttpClient _http;
@@ -18,10 +25,15 @@ namespace Serena.Service
         private readonly IMapper _mapper;
         private readonly ILogger<UserApiClient> _logger;
 
-        // TTL: 10 minutes as requested
+        // Tempo máximo que os dados podem ficar em cache (10 minutos)
+        // Isso NÃO é controle de autenticação, apenas otimização
         private static readonly TimeSpan CacheTtl = TimeSpan.FromMinutes(10);
 
-        public UserApiClient(IHttpClientFactory factory, IMemoryCache cache, IMapper mapper, ILogger<UserApiClient> logger)
+        public UserApiClient(
+            IHttpClientFactory factory,
+            IMemoryCache cache,
+            IMapper mapper,
+            ILogger<UserApiClient> logger)
         {
             _http = factory.CreateClient("ApiGateway");
             _cache = cache;
@@ -29,109 +41,86 @@ namespace Serena.Service
             _logger = logger;
         }
 
-        /// <summary>
-        /// Authenticate: posts login data to downstream and returns a UserViewModel (including Password from the source model).
-        /// Caches the returned UserViewModel for 10 minutes under key user_{id}.
-        /// </summary>
+
         public async Task<UserViewModel?> AuthenticateAsync(UserViewModel dto)
         {
             if (dto == null) return null;
 
             try
             {
-
-                // 1. Mapeamento
                 var loginDto = _mapper.Map<UserDto>(dto);
-
-                // 2. Chamada à API
                 var resp = await _http.PostAsJsonAsync("/User/login", loginDto);
 
-                // LOG PARA DEBUG
-                var content = await resp.Content.ReadAsStringAsync();
-                Console.WriteLine($"Status: {resp.StatusCode} | Body: {content}");
+                if (resp.StatusCode == HttpStatusCode.Unauthorized)
+                    return null;
 
-                // 3. CORREÇÃO DA LÓGICA: Se não for sucesso (200-299), pare aqui.
                 if (!resp.IsSuccessStatusCode)
                 {
-                    return null; // Retorna null para o Controller tratar como "Login Inválido"
+                    var error = await resp.Content.ReadAsStringAsync();
+                    _logger.LogWarning("Falha login: {StatusCode} - {Error}", resp.StatusCode, error);
+                    return null;
                 }
 
-                // 4. Se chegou aqui, o status é 200 OK
                 var returnedDto = await resp.Content.ReadFromJsonAsync<UserDto>();
                 if (returnedDto == null) return null;
 
                 var vm = _mapper.Map<UserViewModel>(returnedDto);
-                vm.Password = dto.Password;
-
-                if (vm.Id > 0)
-                {
-                    var cacheKey = GetCacheKey(vm.Id);
-                    _cache.Set(cacheKey, vm, new MemoryCacheEntryOptions { AbsoluteExpirationRelativeToNow = CacheTtl });
-                }
-
+                vm.Password = null;
                 return vm;
             }
-            catch (HttpRequestException ex)
-            {
-                _logger?.LogError(ex, "HTTP error during AuthenticateAsync");
-                throw;
-            }
             catch (Exception ex)
             {
-                _logger?.LogError(ex, "Unexpected error during AuthenticateAsync");
-                throw;
+                _logger.LogError(ex, "Erro inesperado em AuthenticateAsync");
+                return null;
             }
         }
 
-        public async Task<bool> ResetPasswordAsync(UserViewModel dto)
+
+
+        public async Task<UserViewModel?> GetByIdAsync(int id, string sessionId)
         {
-            if (dto == null) return false;
+            if (id <= 0 || string.IsNullOrWhiteSpace(sessionId))
+                return null;
 
-            try
-            {
-                var resp = await _http.PostAsJsonAsync("/User/reset-password", dto);
-                return resp.IsSuccessStatusCode;
-            }
-            catch (Exception ex)
-            {
-                _logger?.LogError(ex, "Error in ResetPasswordAsync");
-                return false;
-            }
-        }
+            var cacheKey = GetCacheKey(id, sessionId);
 
-        public async Task<UserViewModel?> GetByIdAsync(int id)
-        {
-            if (id <= 0) return null;
-
-            var cacheKey = GetCacheKey(id);
-            if (_cache.TryGetValue(cacheKey, out UserViewModel cachedVm))
-            {
-                return cachedVm;
-            }
+            if (_cache.TryGetValue(cacheKey, out UserViewModel cached))
+                return cached;
 
             try
             {
                 var resp = await _http.GetAsync($"/User/{id}");
-                if (resp.StatusCode == HttpStatusCode.NotFound) return null;
 
-                resp.EnsureSuccessStatusCode();
+                if (resp.StatusCode == HttpStatusCode.NotFound)
+                    return null;
+
+                if (!resp.IsSuccessStatusCode)
+                {
+                    var error = await resp.Content.ReadAsStringAsync();
+                    _logger.LogWarning("Erro GetById: {StatusCode} - {Error}", resp.StatusCode, error);
+                    return null;
+                }
 
                 var dto = await resp.Content.ReadFromJsonAsync<UserDto>();
                 if (dto == null) return null;
 
                 var vm = _mapper.Map<UserViewModel>(dto);
-                // do NOT set Password here (we don't know it) - keep null unless you explicitly want otherwise
+                vm.Password = null;
 
-                _cache.Set(cacheKey, vm, new MemoryCacheEntryOptions { AbsoluteExpirationRelativeToNow = CacheTtl });
+                _cache.Set(cacheKey, vm, new MemoryCacheEntryOptions
+                {
+                    AbsoluteExpirationRelativeToNow = CacheTtl
+                });
 
                 return vm;
             }
             catch (Exception ex)
             {
-                _logger?.LogError(ex, "Error in GetByIdAsync");
-                throw;
+                _logger.LogError(ex, "Erro inesperado em GetByIdAsync");
+                return null;
             }
         }
+
 
         public async Task<UserViewModel?> CreateAsync(UserViewModel dto)
         {
@@ -139,44 +128,50 @@ namespace Serena.Service
 
             try
             {
-                // The API probably expects a DTO; map accordingly
                 var payload = _mapper.Map<UserDto>(dto);
-
                 var resp = await _http.PostAsJsonAsync("/User", payload);
 
-                if (resp.StatusCode == HttpStatusCode.Conflict) return null;
+                if (resp.StatusCode == HttpStatusCode.Conflict ||
+                    resp.StatusCode == HttpStatusCode.BadRequest)
+                {
+                    var error = await resp.Content.ReadAsStringAsync();
+                    _logger.LogWarning("Falha CreateAsync: {StatusCode} - {Error}", resp.StatusCode, error);
+                    return null;
+                }
 
-                resp.EnsureSuccessStatusCode();
+                if (!resp.IsSuccessStatusCode)
+                {
+                    var error = await resp.Content.ReadAsStringAsync();
+                    _logger.LogError("Erro inesperado CreateAsync: {StatusCode} - {Error}", resp.StatusCode, error);
+                    return null;
+                }
 
                 var createdDto = await resp.Content.ReadFromJsonAsync<UserDto>();
                 if (createdDto == null) return null;
 
                 var vm = _mapper.Map<UserViewModel>(createdDto);
-
-                // preserve password from submitted dto (per your request)
-                vm.Password = dto.Password;
-
-                // cache the created user for 10 minutes
-                if (vm.Id > 0)
-                {
-                    var cacheKey = GetCacheKey(vm.Id);
-                    _cache.Set(cacheKey, vm, new MemoryCacheEntryOptions { AbsoluteExpirationRelativeToNow = CacheTtl });
-                }
-
+                vm.Password = null;
                 return vm;
-            }
-            catch (HttpRequestException ex)
-            {
-                _logger?.LogError(ex, "HTTP error in CreateAsync");
-                throw;
             }
             catch (Exception ex)
             {
-                _logger?.LogError(ex, "Unexpected error in CreateAsync");
-                throw;
+                _logger.LogError(ex, "Erro inesperado em CreateAsync");
+                return null;
             }
         }
-
+        public async Task<bool> ResetPasswordAsync(UserViewModel dto) 
+        { 
+            if (dto == null) return false; 
+            try 
+            { 
+                var resp = await _http.PostAsJsonAsync("/User/reset-password", dto); 
+                return resp.IsSuccessStatusCode; 
+            } 
+            catch (Exception ex) 
+            { 
+                _logger?.LogError(ex, "Error in ResetPasswordAsync"); return false; 
+            } 
+        }
         public async Task<UserViewModel?> UpdateAsync(int id, UserViewModel dto)
         {
             if (id <= 0 || dto == null) return null;
@@ -186,30 +181,36 @@ namespace Serena.Service
                 var payload = _mapper.Map<UserDto>(dto);
                 var resp = await _http.PutAsJsonAsync($"/User/{id}", payload);
 
-                if (resp.StatusCode == HttpStatusCode.NotFound) return null;
+                if (resp.StatusCode == HttpStatusCode.NotFound ||
+                    resp.StatusCode == HttpStatusCode.BadRequest ||
+                    resp.StatusCode == HttpStatusCode.Conflict)
+                {
+                    var error = await resp.Content.ReadAsStringAsync();
+                    _logger.LogWarning("Falha UpdateAsync: {StatusCode} - {Error}", resp.StatusCode, error);
+                    return null;
+                }
 
-                resp.EnsureSuccessStatusCode();
+                if (!resp.IsSuccessStatusCode)
+                {
+                    var error = await resp.Content.ReadAsStringAsync();
+                    _logger.LogError("Erro inesperado UpdateAsync: {StatusCode} - {Error}", resp.StatusCode, error);
+                    return null;
+                }
 
                 var updatedDto = await resp.Content.ReadFromJsonAsync<UserDto>();
                 if (updatedDto == null) return null;
 
                 var vm = _mapper.Map<UserViewModel>(updatedDto);
-
-                // preserve password if provided
-                vm.Password = dto.Password;
-
-                // refresh cache
-                var cacheKey = GetCacheKey(id);
-                _cache.Set(cacheKey, vm, new MemoryCacheEntryOptions { AbsoluteExpirationRelativeToNow = CacheTtl });
-
+                vm.Password = null;
                 return vm;
             }
             catch (Exception ex)
             {
-                _logger?.LogError(ex, "Error in UpdateAsync");
-                throw;
+                _logger.LogError(ex, "Erro inesperado em UpdateAsync");
+                return null;
             }
         }
+
 
         public async Task<bool> DeleteAsync(int id)
         {
@@ -218,23 +219,29 @@ namespace Serena.Service
             try
             {
                 var resp = await _http.DeleteAsync($"/User/{id}");
-                if (resp.StatusCode == HttpStatusCode.NotFound) return false;
 
-                resp.EnsureSuccessStatusCode();
+                if (resp.StatusCode == HttpStatusCode.NotFound ||
+                    resp.StatusCode == HttpStatusCode.BadRequest)
+                    return false;
 
-                // remove from cache if existed
-                _cache.Remove(GetCacheKey(id));
+                if (!resp.IsSuccessStatusCode)
+                {
+                    var error = await resp.Content.ReadAsStringAsync();
+                    _logger.LogError("Erro DeleteAsync: {StatusCode} - {Error}", resp.StatusCode, error);
+                    return false;
+                }
+
                 return true;
             }
             catch (Exception ex)
             {
-                _logger?.LogError(ex, "Error in DeleteAsync");
-                throw;
+                _logger.LogError(ex, "Erro inesperado em DeleteAsync");
+                return false;
             }
         }
 
-        private static string GetCacheKey(int id) => $"user_{id}";
+        
+        private static string GetCacheKey(int userId, string sessionId)
+            => $"session_{sessionId}_user_{userId}";
     }
 }
-
-

@@ -25,7 +25,7 @@ namespace Serena.Models.DTOs
        
         public DateTime? DataNascimento { get; set; }
 
-        public EnderecoViewModel? Endereco { get; set; }
+        public EnderecoViewModel Endereco { get; set; }
         public ICollection<ApoioViewModel>? NumerosDeApoio { get; set; }
     }
 }

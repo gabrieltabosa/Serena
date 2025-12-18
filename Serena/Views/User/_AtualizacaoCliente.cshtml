@@ -1,4 +1,5 @@
-﻿@model UserViewModel
+﻿@model DashboardViewModel<UserViewModel>
+
 
 <div class="row">
     <div class="col-md-12">
@@ -7,37 +8,68 @@
                 <h4 class="mb-4 text-primary"><i class="fas fa-user-edit"></i> Meu Perfil</h4>
 
                 <form asp-action="Update" method="post">
-                    <input type="hidden" asp-for="Id" />
+                    <input type="hidden" asp-for="CurrentItem.Id" />
 
                     <div class="row">
                         <div class="col-md-7">
                             <div class="row g-3">
-
                                 <div class="col-12">
-                                    <label asp-for="Name" class="form-label"></label>
-                                    <input asp-for="Name" class="form-control" />
-                                    <span asp-validation-for="Name" class="text-danger"></span>
+                                    <label asp-for="CurrentItem.Name" class="form-label"></label>
+                                    <input asp-for="CurrentItem.Name" class="form-control" />
+                                    <span asp-validation-for="CurrentItem.Name" class="text-danger"></span>
                                 </div>
 
                                 <div class="col-md-6">
-                                    <label asp-for="Email" class="form-label"></label>
-                                    <input asp-for="Email" class="form-control bg-light" readonly />
+                                    <label asp-for="CurrentItem.Email" class="form-label"></label>
+                                    <input asp-for="CurrentItem.Email" class="form-control bg-light" readonly />
                                 </div>
 
                                 <div class="col-md-6">
-                                    <label asp-for="Telefone" class="form-label"></label>
-                                    <input asp-for="Telefone" class="form-control cel-mask" />
-                                    <span asp-validation-for="Telefone" class="text-danger"></span>
+                                    <label asp-for="CurrentItem.Telefone" class="form-label"></label>
+                                    <input asp-for="CurrentItem.Telefone" class="form-control cel-mask" />
+                                    <span asp-validation-for="CurrentItem.Telefone" class="text-danger"></span>
                                 </div>
 
                                 <div class="col-md-6">
-                                    <label asp-for="Cpf" class="form-label"></label>
-                                    <input asp-for="Cpf" class="form-control cpf-mask bg-light" readonly />
+                                    <label asp-for="CurrentItem.Cpf" class="form-label"></label>
+                                    <input asp-for="CurrentItem.Cpf" class="form-control cpf-mask bg-light" readonly />
                                 </div>
 
                                 <div class="col-md-6">
-                                    <label asp-for="DataNascimento" class="form-label"></label>
-                                    <input asp-for="DataNascimento" class="form-control bg-light" readonly />
+                                    <label asp-for="CurrentItem.DataNascimento" class="form-label"></label>
+                                    <input asp-for="CurrentItem.DataNascimento" class="form-control bg-light" readonly />
+                                </div>
+                                <input type="hidden" asp-for="SessionId" />
+                                <input type="hidden" asp-for="UserId" />
+                            </div>
+
+                            <div class="mt-4">
+                                <h6 class="text-secondary border-bottom pb-2">
+                                    <i class="fas fa-phone-alt"></i> Contatos de Apoio
+                                </h6>
+                                <div class="row g-2">
+                                    @if (Model.CurrentItem.NumerosDeApoio != null && Model.CurrentItem.NumerosDeApoio.Count > 0)
+                                    {
+                                        var apoios = Model.CurrentItem.NumerosDeApoio.ToList();
+                                        for (int i = 0; i < apoios.Count; i++)
+                                        {
+                                            <input type="hidden" name="NumerosDeApoio[@i].Id" value="@apoios[i].Id" />
+                                            <div class="col-md-5">
+                                                <label class="small text-muted">Tipo (Ex: Pai, Amigo)</label>
+                                                <input name="NumerosDeApoio[@i].Tipo" value="@apoios[i].Nome" class="form-control form-control-sm" />
+                                            </div>
+                                            <div class="col-md-7">
+                                                <label class="small text-muted">Número</label>
+                                                <input name="NumerosDeApoio[@i].Numero" value="@apoios[i].Numero" class="form-control form-control-sm cel-mask" />
+                                            </div>
+                                        }
+                                    }
+                                    else
+                                    {
+                                        <div class="col-12">
+                                            <p class="text-muted small italic">Nenhum número de apoio cadastrado.</p>
+                                        </div>
+                                    }
                                 </div>
                             </div>
                         </div>
@@ -46,36 +78,35 @@
                             <h6><i class="fas fa-map-marker-alt"></i> Localização</h6>
 
                             <div class="mb-2">
-                                <label asp-for="Endereco.Rua" class="small"></label>
-                                <input asp-for="Endereco.Rua" class="form-control form-control-sm" />
-                                <span asp-validation-for="Endereco.Rua" class="text-danger"></span>
+                                <label asp-for="CurrentItem.Endereco.Rua" class="small"></label>
+                                <input asp-for="CurrentItem.Endereco.Rua" class="form-control form-control-sm" />
+                                <span asp-validation-for="CurrentItem.Endereco.Rua" class="text-danger"></span>
                             </div>
 
                             <div class="mb-2">
-                                <label asp-for="Endereco.Cidade" class="small"></label>
-                                <input asp-for="Endereco.Cidade" class="form-control form-control-sm" />
-                                <span asp-validation-for="Endereco.Rua" class="text-danger"></span>
+                                <label asp-for="CurrentItem.Endereco.Cidade" class="small"></label>
+                                <input asp-for="CurrentItem.Endereco.Cidade" class="form-control form-control-sm" />
+                                <span asp-validation-for="CurrentItem.Endereco.Cidade" class="text-danger"></span>
                             </div>
 
                             <div class="mb-2">
-                                <label asp-for="Endereco.Bairro" class="small"></label>
-                                <input asp-for="Endereco.Bairro" class="form-control form-control-sm" />
-                                <span asp-validation-for="Endereco.Bairro" class="text-danger"></span>
+                                <label asp-for="CurrentItem.Endereco.Bairro" class="small"></label>
+                                <input asp-for="CurrentItem.Endereco.Bairro" class="form-control form-control-sm" />
+                                <span asp-validation-for="CurrentItem.Endereco.Bairro" class="text-danger"></span>
                             </div>
 
                             <div class="mb-2 row">
                                 <div class="col-6">
-                                    <label asp-for="Endereco.Numero" class="small">Número</label>
-                                    <input asp-for="Endereco.Numero" class="form-control form-control-sm" />
-                                    <span asp-validation-for="Endereco.Numero" class="text-danger"></span>
+                                    <label asp-for="CurrentItem.Endereco.Numero" class="small">Número</label>
+                                    <input asp-for="CurrentItem.Endereco.Numero" class="form-control form-control-sm" />
+                                    <span asp-validation-for="CurrentItem.Endereco.Numero" class="text-danger"></span>
                                 </div>
-
+                                
                                 <div class="col-6">
-                                    <label asp-for="Endereco.Estado" class="small">Estado/UF</label>
-                                    <input asp-for="Endereco.Estado" class="form-control form-control-sm bg-light" readonly />
+                                    <label asp-for="CurrentItem.Endereco.Estado" class="small">Estado/UF</label>
+                                    <input asp-for="CurrentItem.Endereco.Estado" class="form-control form-control-sm bg-light" readonly />
                                 </div>
                             </div>
-
                         </div>
                     </div>
 
@@ -83,7 +114,7 @@
 
                     <div class="d-flex justify-content-between">
                         <button type="submit" class="btn btn-primary px-4">Atualizar Perfil</button>
-                        <a asp-action="ConfirmDelete" asp-route-id="@Model.Id" class="btn btn-outline-danger">
+                        <a asp-action="ConfirmDelete" asp-route-userId="@Model.CurrentItem.Id" asp-route-sessionId="@Model.SessionId" class="btn btn-outline-danger">
                             <i class="fas fa-trash-alt"></i> Excluir minha conta
                         </a>
                     </div>
@@ -93,12 +124,5 @@
     </div>
 </div>
 
-<script>
-    // SCRIPT DE REATIVAÇÃO DE VALIDAÇÃO (CRÍTICO para Partial Views)
-    $(function () {
-        var form = $('form');
-        form.removeData('validator');
-        form.removeData('unobtrusiveValidation');
-        $.validator.unobtrusive.parse(form);
-    });
-</script>
+
+

@@ -55,7 +55,7 @@ namespace Serena.Service
         public async Task<DenunciaViewModel> GetByIdAsync(int id)
         {
             var resp = await _http.GetAsync($"/Denuncias/{id}");
-            resp.EnsureSuccessStatusCode();
+            
             return await resp.Content.ReadFromJsonAsync<DenunciaViewModel>() ?? throw new Exception("Nenhum conteúdo");
         }
     }

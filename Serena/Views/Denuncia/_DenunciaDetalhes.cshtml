@@ -1,22 +1,22 @@
-﻿@model DenunciaViewModel
+﻿@model DashboardViewModel<DenunciaViewModel>
 
 <div class="row">
     <div class="col-md-8">
         <div class="card shadow-sm border-0 mb-4">
             <div class="card-body">
                 <div class="d-flex justify-content-between align-items-center mb-3">
-                    <h5 class="text-primary mb-0">Protocolo #@Model.Id.ToString("D5")</h5>
-                    <span class="badge bg-info px-3 py-2">@Model.Status</span>
+                    <h5 class="text-primary mb-0">Protocolo #@Model.CurrentItem.Id.ToString("D5")</h5>
+                    <span class="badge bg-info px-3 py-2">@Model.CurrentItem.Status</span>
                 </div>
 
-                <p class="text-muted small">Registrado em: @Model.CriadoEm.ToString("dd/MM/yyyy HH:mm")</p>
+                <p class="text-muted small">Registrado em: @Model.CurrentItem.CriadoEm.ToString("dd/MM/yyyy HH:mm")</p>
 
                 <h6 class="fw-bold mt-4">Tipo de Violência:</h6>
-                <p>@Model.TipoViolencia</p>
+                <p>@Model.CurrentItem.TipoViolencia</p>
 
                 <h6 class="fw-bold mt-3">Descrição do Relato:</h6>
                 <div class="p-3 bg-light rounded italic">
-                    "@Model.Descricao"
+                    "@Model.CurrentItem.Descricao"
                 </div>
             </div>
         </div>
@@ -27,11 +27,11 @@
             <div class="card-body">
                 <h6 class="fw-bold text-secondary"><i class="fas fa-map-marked-alt me-2"></i>Localização</h6>
                 <hr>
-                @if (Model.Endereco != null)
+                @if (Model.CurrentItem.Endereco != null)
                 {
-                    <p class="mb-1"><strong>@Model.Endereco.Rua, @Model.Endereco.Numero</strong></p>
-                    <p class="mb-1">@Model.Endereco.Cidade - @Model.Endereco.Estado</p>
-                    <p class="text-muted small">Numero: @Model.Endereco.Numero</p>
+                    <p class="mb-1"><strong>@Model.CurrentItem.Endereco.Rua, @Model.CurrentItem.Endereco.Numero</strong></p>
+                    <p class="mb-1">@Model.CurrentItem.Endereco.Cidade - @Model.CurrentItem.Endereco.Estado</p>
+                    <p class="text-muted small">Numero: @Model.CurrentItem.Endereco.Numero</p>
                 }
                 else
                 {

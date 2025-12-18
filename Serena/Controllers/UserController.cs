@@ -1,58 +1,58 @@
-﻿using Microsoft.AspNetCore.Authentication;
-using Microsoft.AspNetCore.Authentication.Cookies;
-using Microsoft.AspNetCore.Authorization;
+﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Caching.Memory;
 using Serena.Models;
 using Serena.Service;
-using System.Security.Claims;
 
 namespace Serena.Controllers
 {
     [Route("[controller]")]
-    [Authorize] // Protege o perfil por padrão
     public class UserController : Controller
     {
         private readonly IUserApiClient _userApiClient;
+        private readonly IMemoryCache _cache;
+       
+        
 
-        public UserController(IUserApiClient userApiClient)
+        public UserController(IUserApiClient userApiClient, IMemoryCache cache)
         {
             _userApiClient = userApiClient;
+            _cache = cache;
         }
+        
 
-        // --- 1. Tela de Login (Ponto de Entrada) ---
+       
         [HttpGet]
         [AllowAnonymous]
-        [Route("")]      // Atende em: /User
-        [Route("~/")]    // Atende em: / (Raiz do site)
+        [Route("")]
+        [Route("~/")]
         [Route("Index")]
-        public IActionResult Index()
+        public IActionResult Index( )
         {
-            var model = new DashboardViewModel<UserViewModel>
+            return View(new DashboardViewModel<UserViewModel>
             {
                 ActiveView = DashboardViewType.Login,
                 Title = "Acesso ao Sistema",
                 CurrentItem = new UserViewModel()
-            };
-            return View(model);
+            });
         }
 
-        // --- 2. Fluxo de Cadastro ---
+      
+        
         [HttpGet("ViewCadastro")]
         [AllowAnonymous]
         public IActionResult ViewCadastro()
         {
-            var viewModel = new DashboardViewModel<UserViewModel>
+            return View("Index", new DashboardViewModel<UserViewModel>
             {
                 ActiveView = DashboardViewType.Cadastro,
                 Title = "Crie sua Conta",
                 CurrentItem = new UserViewModel()
-            };
-            return View("Index", viewModel);
+            });
         }
 
         [HttpPost("Create")]
         [AllowAnonymous]
-        [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create(UserViewModel model)
         {
             if (!ModelState.IsValid)
@@ -64,93 +64,149 @@ namespace Serena.Controllers
                 });
             }
 
-            var newUser = await _userApiClient.CreateAsync(model);
-            if (newUser == null)
+            try
             {
-                ModelState.AddModelError(string.Empty, "Erro ao cadastrar. Tente outro e-mail.");
+                var newUser = await _userApiClient.CreateAsync(model);
+
+                if (newUser == null)
+                {
+                    // Fallback genérico caso não venha detalhe
+                    ModelState.AddModelError(string.Empty, "Não foi possível cadastrar o usuário.");
+                    return View("Index", new DashboardViewModel<UserViewModel>
+                    {
+                        ActiveView = DashboardViewType.Cadastro,
+                        CurrentItem = model
+                       
+                    });
+                }
+
+                return RedirectToAction(nameof(Index));
+            }
+            catch (ApplicationException ex)
+            {
+                
+                TryAddApiErrorsToModelState(ex.Message);
+
                 return View("Index", new DashboardViewModel<UserViewModel>
                 {
                     ActiveView = DashboardViewType.Cadastro,
                     CurrentItem = model
                 });
             }
-
-            return RedirectToAction(nameof(Index)); // Volta para o login após cadastrar
         }
 
-        // --- 3. Fluxo de Atualização ---
-        [HttpGet("Edit/{id}")]
-        public async Task<IActionResult> Edit(int id)
+        private void TryAddApiErrorsToModelState(string erroJson)
         {
-            var user = await _userApiClient.GetByIdAsync(id);
-            if (user == null) return RedirectToAction(nameof(Index));
+            try
+            {
+                var problem = System.Text.Json.JsonSerializer.Deserialize<ApiValidationProblem>(erroJson);
 
-            var viewModel = new DashboardViewModel<UserViewModel>
+                if (problem?.Errors != null)
+                {
+                    foreach (var field in problem.Errors)
+                    {
+                        foreach (var message in field.Value)
+                        {
+                            ModelState.AddModelError(field.Key, message);
+                        }
+                    }
+                }
+                else
+                {
+                    ModelState.AddModelError(string.Empty, "Erro ao processar a solicitação.");
+                }
+            }
+            catch
+            {
+                // Se não for JSON válido
+                ModelState.AddModelError(string.Empty, erroJson);
+            }
+        }
+
+        
+        [HttpGet("Edit/{userId}")]
+        public async Task<IActionResult> Edit(int userId, string sessionId)
+        {
+            if (!SessaoValida(sessionId))
+                return RedirectToAction(nameof(Index));
+
+            // 🔑 Interface corrigida: agora exige sessionId
+            var user = await _userApiClient.GetByIdAsync(userId, sessionId);
+            if (user == null)
+                return RedirectToAction(nameof(Index));
+            
+            return View("Index", new DashboardViewModel<UserViewModel>
             {
                 ActiveView = DashboardViewType.Atualizacao,
                 Title = "Meu Perfil",
-                CurrentItem = user
-            };
-            return View("Index", viewModel);
+                CurrentItem = user,
+                SessionId = sessionId,
+                UserId = userId
+            });
         }
+        
 
         [HttpPost("Update")]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Update(UserViewModel model)
+        public async Task<IActionResult> Update(DashboardViewModel<UserViewModel> model)
         {
+            if (!SessaoValida(model.SessionId))
+                return RedirectToAction(nameof(Index));
+
             if (!ModelState.IsValid)
             {
-                return View("Index", new DashboardViewModel<UserViewModel>
-                {
-                    ActiveView = DashboardViewType.Atualizacao,
-                    CurrentItem = model
-                });
+                model.ActiveView = DashboardViewType.Atualizacao;
+                return View(model);
+                
             }
 
-            await _userApiClient.UpdateAsync(model.Id, model);
-            return RedirectToAction(nameof(Edit), new { id = model.Id });
+            await _userApiClient.UpdateAsync(model.CurrentItem.Id, model.CurrentItem);
+            
+
+            return RedirectToAction(nameof(Edit), new { userId = model.CurrentItem.Id, sessionId = model.SessionId });
         }
 
-        // --- 4. Fluxo de Exclusão ---
-        [HttpGet("ConfirmDelete/{id}")]
-        public async Task<IActionResult> ConfirmDelete(int id)
+        
+        [HttpGet("ConfirmDelete/{userId}")]
+        public async Task<IActionResult> ConfirmDelete(int userId, string sessionId)
         {
-            var user = await _userApiClient.GetByIdAsync(id);
-            var viewModel = new DashboardViewModel<UserViewModel>
+            Console.WriteLine($"tempo restante da sessao: {sessionId}");
+            if (!SessaoValida(sessionId))
+                return RedirectToAction(nameof(Index));
+
+            var user = await _userApiClient.GetByIdAsync(userId, sessionId);
+            
+
+            return View("Index", new DashboardViewModel<UserViewModel>
             {
                 ActiveView = DashboardViewType.Exclusao,
                 Title = "Excluir Conta",
-                CurrentItem = user
-            };
-            return View("Index", viewModel);
+                CurrentItem = user,
+                SessionId = sessionId,
+                UserId = userId
+            });
         }
 
         [HttpPost("Delete")]
-        public async Task<IActionResult> Delete(int id)
+        public async Task<IActionResult> Delete(int id, string sessionId)
         {
+            if (!SessaoValida(sessionId))
+                return RedirectToAction(nameof(Index));
+
             await _userApiClient.DeleteAsync(id);
 
-            // AJUSTE: Se o usuário logado está deletando a própria conta, 
-            // precisamos limpar o cookie para que ele não tente acessar áreas restritas
-            var currentUserId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-            if (currentUserId == id.ToString())
-            {
-                await HttpContext.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
-                return RedirectToAction(nameof(Index));
-            }
+            // ❌ Encerra sessão explicitamente
+            _cache.Remove(sessionId);
 
             return RedirectToAction(nameof(Index));
         }
 
+        
         [HttpPost("Login")]
         [AllowAnonymous]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Login(UserViewModel model)
         {
-            // 1. Validar via API (Supondo que sua API tenha um método de autenticação)
-            // Se a sua API retorna o usuário completo ao validar a senha:
             var user = await _userApiClient.AuthenticateAsync(model);
-            
 
             if (user == null)
             {
@@ -162,38 +218,34 @@ namespace Serena.Controllers
                 });
             }
 
-            // 2. Criar as credenciais (Claims) para o sistema de Cookies do ASP.NET Core
-            var claims = new List<Claim>
-            {
-                new Claim(ClaimTypes.Name, user.Name),
-                new Claim(ClaimTypes.Email, user.Email),
-                new Claim(ClaimTypes.NameIdentifier, user.Id.ToString()),
-            };
+            // Cria sessão em memória (10 min)
+            var sessionId = Guid.NewGuid().ToString();
+            _cache.Set(sessionId, true, TimeSpan.FromMinutes(1));
+            
 
-            var claimsIdentity = new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme);
-
-            // 3. Configurar a expiração de 10 minutos aqui também (Garantia extra)
-            var authProperties = new AuthenticationProperties
-            {
-                IsPersistent = false, // Mantém o cookie mesmo se fechar o navegador
-                ExpiresUtc = DateTimeOffset.UtcNow.AddMinutes(10)
-            };
-
-            await HttpContext.SignInAsync(
-                CookieAuthenticationDefaults.AuthenticationScheme,
-                new ClaimsPrincipal(claimsIdentity),
-                authProperties);
-
-            // 4. Redirecionar para o perfil (Edição) ou página de denúncias
-            return RedirectToAction("Index", "Denuncia");
+            // Redireciona já com sessionId + userId
+            return RedirectToAction(
+                "Index",
+                "Denuncia",
+                new { sessionId, userId = user.Id }
+            );
         }
 
-        // --- 6. Ação de Logout ---
         [HttpPost("Logout")]
-        public async Task<IActionResult> Logout()
+        public IActionResult Logout(string sessionId)
         {
-            await HttpContext.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
+            if (!string.IsNullOrWhiteSpace(sessionId))
+                _cache.Remove(sessionId);
+
             return RedirectToAction(nameof(Index));
+        }
+
+        
+        private bool SessaoValida(string sessionId)
+        {
+            return !string.IsNullOrWhiteSpace(sessionId)
+                   && _cache.TryGetValue(sessionId, out _);
         }
     }
 }
+
