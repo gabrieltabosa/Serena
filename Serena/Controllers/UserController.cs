@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Caching.Memory;
 using Serena.Models;
 using Serena.Service;
+using System.Reflection;
 
 namespace Serena.Controllers
 {
@@ -134,7 +135,8 @@ namespace Serena.Controllers
             var user = await _userApiClient.GetByIdAsync(userId, sessionId);
             if (user == null)
                 return RedirectToAction(nameof(Index));
-            
+            Console.WriteLine($"o nome do usuario atualizado é: {user.Name}");
+
             return View("Index", new DashboardViewModel<UserViewModel>
             {
                 ActiveView = DashboardViewType.Atualizacao,
@@ -154,7 +156,8 @@ namespace Serena.Controllers
 
             
 
-            model.CurrentItem = await _userApiClient.UpdateAsync(model.CurrentItem.Id, model.CurrentItem);
+            model.CurrentItem = await _userApiClient.UpdateAsync(model.CurrentItem.Id, model.CurrentItem, model.SessionId);
+            Console.WriteLine($"o nome do usuario atualizado é: {model.CurrentItem.Name}");
             
             model.ActiveView = DashboardViewType.Atualizacao;
             return View("Index", model);
@@ -169,8 +172,8 @@ namespace Serena.Controllers
                 return RedirectToAction(nameof(Index));
 
             var user = await _userApiClient.GetByIdAsync(userId, sessionId);
-            
 
+            Console.WriteLine($"o nome do usuario atualizado é: {user.Name}");
             return View("Index", new DashboardViewModel<UserViewModel>
             {
                 ActiveView = DashboardViewType.Exclusao,
@@ -182,15 +185,15 @@ namespace Serena.Controllers
         }
 
         [HttpPost("Delete")]
-        public async Task<IActionResult> Delete(int id, string sessionId)
+        public async Task<IActionResult> Delete(int userId, string sessionId)
         {
             if (!SessaoValida(sessionId))
                 return RedirectToAction(nameof(Index));
 
-            await _userApiClient.DeleteAsync(id);
+            await _userApiClient.DeleteAsync(userId,sessionId);
 
-            // ❌ Encerra sessão explicitamente
-            _cache.Remove(sessionId);
+            
+            
 
             return RedirectToAction(nameof(Index));
         }
@@ -198,7 +201,6 @@ namespace Serena.Controllers
         
         [HttpPost("Login")]
         [AllowAnonymous]
-        [ValidateAntiForgeryToken]
         public async Task<IActionResult> Login(UserViewModel model)
         {
             var user = await _userApiClient.AuthenticateAsync(model);
@@ -215,7 +217,7 @@ namespace Serena.Controllers
 
             // Cria sessão em memória (10 min)
             var sessionId = Guid.NewGuid().ToString();
-            _cache.Set(sessionId, true, TimeSpan.FromMinutes(1));
+            _cache.Set(sessionId, true, TimeSpan.FromMinutes(5));
             
 
             // Redireciona já com sessionId + userId

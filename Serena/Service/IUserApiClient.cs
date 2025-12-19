@@ -18,10 +18,10 @@ namespace Serena.Service
         Task<UserViewModel?> CreateAsync(UserViewModel dto);
 
         
-        Task<UserViewModel?> UpdateAsync(int id, UserViewModel dto);
+        Task<UserViewModel?> UpdateAsync(int id, UserViewModel dto, string sessionId);
 
        
-        Task<bool> DeleteAsync(int id);
+        Task<bool> DeleteAsync(int id,string sessionId);
     }
 }
 

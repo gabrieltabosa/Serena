@@ -1,63 +1,73 @@
 ﻿document.addEventListener("DOMContentLoaded", function () {
-    const form = document.getElementById('fromCadastro');
-
-    // Seleção dos campos
-    const emailInput = document.querySelector('input[name="Email"]');
+    // 1. Captura de elementos
+    const formCadastro = document.getElementById('fromCadastro');
+    const emailInput = document.querySelector('input[type="email"]');
+    const cpfInput = document.querySelector('.cpf-mask');
     const password = document.querySelector('input[name="Password"]');
     const confirmPassword = document.getElementById('ConfirmPassword');
-    const confirmError = document.getElementById('confirmPasswordError');
 
-    // Função de validação de E-mail via Regex
+    // Função auxiliar para validar email
     function validarEmail(email) {
         const regex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
         return regex.test(email);
     }
 
-    // Validação em tempo real para o E-mail
-    emailInput.addEventListener('input', function () {
-        if (validarEmail(this.value)) {
-            this.classList.remove('is-invalid');
-            this.classList.add('is-valid');
-        } else {
-            this.classList.remove('is-valid');
-            this.classList.add('is-invalid');
-        }
-    });
+    // --- VALIDAÇÃO EM TEMPO REAL ---
 
-    // Validação em tempo real para Senhas
-    confirmPassword.addEventListener('input', function () {
-        if (password.value !== confirmPassword.value) {
-            confirmPassword.classList.add('is-invalid');
-            confirmError.classList.remove('d-none');
-        } else {
-            confirmPassword.classList.remove('is-invalid');
-            confirmPassword.classList.add('is-valid');
-            confirmError.classList.add('d-none');
-        }
-    });
+    if (emailInput) {
+        emailInput.addEventListener('blur', function () {
+            this.classList.toggle('is-invalid', !validarEmail(this.value));
+        });
+    }
 
-    // Interceptar o Submit
-    form.addEventListener('submit', function (event) {
-        let formValido = true;
+    if (cpfInput) {
+        cpfInput.addEventListener('blur', function () {
+            // Se a função validarCPF não estiver definida neste arquivo, o erro continuará
+            if (typeof validarCPF === "function") {
+                const valido = validarCPF(this.value);
+                this.classList.toggle('is-invalid', !valido);
+            }
+        });
+    }
 
-        // Validar E-mail no submit
-        if (!validarEmail(emailInput.value)) {
-            emailInput.classList.add('is-invalid');
-            formValido = false;
-        }
+    if (confirmPassword && password) {
+        confirmPassword.addEventListener('input', function () {
+            const coincidem = password.value === confirmPassword.value;
+            confirmPassword.classList.toggle('is-invalid', !coincidem);
+        });
+    }
 
-        // Validar Confirmação de Senha no submit
-        if (password.value !== confirmPassword.value) {
-            confirmPassword.classList.add('is-invalid');
-            formValido = false;
-        }
+    // --- VALIDAÇÃO NO MOMENTO DO SUBMIT ---
 
-        if (!formValido) {
-            event.preventDefault();
-            event.stopPropagation();
-            alert("Por favor, corrija os erros no formulário antes de continuar.");
-        }
-    });
-});
+    if (formCadastro) {
+        formCadastro.addEventListener('submit', function (event) {
+            let formValido = true;
 
+            // 1. Validar Email
+            if (emailInput && !validarEmail(emailInput.value)) {
+                emailInput.classList.add('is-invalid');
+                formValido = false;
+            }
+
+            // 2. Validar Confirmação de Senha
+            if (password && confirmPassword) {
+                if (password.value !== confirmPassword.value) {
+                    confirmPassword.classList.add('is-invalid');
+                    formValido = false;
+                }
+            }
+
+            // 3. Verificar se existe qualquer outro campo com a classe is-invalid
+            if (document.querySelectorAll('.is-invalid').length > 0) {
+                formValido = false;
+            }
+
+            if (!formValido) {
+                event.preventDefault(); // Para o envio
+                event.stopPropagation();
+                alert("Por favor, corrija os campos destacados em vermelho.");
+            }
+        });
+    }
+}); // Fim do DOMContentLoaded - TUDO deve estar aqui dentro
 

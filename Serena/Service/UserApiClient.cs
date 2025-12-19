@@ -1,13 +1,14 @@
-﻿using System;
-using System.Net;
-using System.Net.Http;
-using System.Net.Http.Json;
-using System.Threading.Tasks;
-using AutoMapper;
+﻿using AutoMapper;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Logging;
 using Serena.Models;
 using Serena.Models.DTOs;
+using System;
+using System.Net;
+using System.Net.Http;
+using System.Net.Http.Json;
+using System.Reflection;
+using System.Threading.Tasks;
 
 namespace Serena.Service
 {
@@ -166,7 +167,7 @@ namespace Serena.Service
                 _logger?.LogError(ex, "Error in ResetPasswordAsync"); return false; 
             } 
         }
-        public async Task<UserViewModel?> UpdateAsync(int id, UserViewModel dto)
+        public async Task<UserViewModel?> UpdateAsync(int id, UserViewModel dto, string sessionId)
         {
             if (id <= 0 || dto == null) return null;
 
@@ -175,19 +176,10 @@ namespace Serena.Service
                 var payload = _mapper.Map<UserDto>(dto);
                 var resp = await _http.PutAsJsonAsync($"/User/{id}", payload);
 
-                if (resp.StatusCode == HttpStatusCode.NotFound ||
-                    resp.StatusCode == HttpStatusCode.BadRequest ||
-                    resp.StatusCode == HttpStatusCode.Conflict)
-                {
-                    var error = await resp.Content.ReadAsStringAsync();
-                    _logger.LogWarning("Falha UpdateAsync: {StatusCode} - {Error}", resp.StatusCode, error);
-                    return null;
-                }
-
                 if (!resp.IsSuccessStatusCode)
                 {
                     var error = await resp.Content.ReadAsStringAsync();
-                    _logger.LogError("Erro inesperado UpdateAsync: {StatusCode} - {Error}", resp.StatusCode, error);
+                    _logger.LogWarning("Falha UpdateAsync: {StatusCode} - {Error}", resp.StatusCode, error);
                     return null;
                 }
 
@@ -196,6 +188,15 @@ namespace Serena.Service
 
                 var vm = _mapper.Map<UserViewModel>(updatedDto);
                 vm.Password = null;
+
+                
+                // Removemos o cache antigo para forçar o GetById a buscar dados novos na próxima vez
+                if (!string.IsNullOrWhiteSpace(sessionId))
+                {
+                    var cacheKey = GetCacheKey(id, sessionId);
+                    _cache.Remove(cacheKey);
+                }
+
                 return vm;
             }
             catch (Exception ex)
@@ -205,8 +206,10 @@ namespace Serena.Service
             }
         }
 
+     
 
-        public async Task<bool> DeleteAsync(int id)
+        
+        public async Task<bool> DeleteAsync(int id, string sessionId)
         {
             if (id <= 0) return false;
 
@@ -214,15 +217,18 @@ namespace Serena.Service
             {
                 var resp = await _http.DeleteAsync($"/User/{id}");
 
-                if (resp.StatusCode == HttpStatusCode.NotFound ||
-                    resp.StatusCode == HttpStatusCode.BadRequest)
-                    return false;
-
                 if (!resp.IsSuccessStatusCode)
                 {
                     var error = await resp.Content.ReadAsStringAsync();
                     _logger.LogError("Erro DeleteAsync: {StatusCode} - {Error}", resp.StatusCode, error);
                     return false;
+                }
+
+                // Se deletou com sucesso, limpa do cache para não exibir mais
+                if (!string.IsNullOrWhiteSpace(sessionId))
+                {
+                    var cacheKey = GetCacheKey(id, sessionId);
+                    _cache.Remove(cacheKey);
                 }
 
                 return true;
@@ -234,7 +240,7 @@ namespace Serena.Service
             }
         }
 
-        
+
         private static string GetCacheKey(int userId, string sessionId)
             => $"session_{sessionId}_user_{userId}";
     }

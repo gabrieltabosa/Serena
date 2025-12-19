@@ -45,31 +45,36 @@
                             </div>
 
                             <div class="mt-4">
-                                <h6 class="text-secondary border-bottom pb-2">
-                                    <i class="fas fa-phone-alt"></i> Contatos de Apoio
+                                <h6 class="text-secondary border-bottom pb-2 d-flex justify-content-between align-items-center">
+                                    <span><i class="fas fa-phone-alt"></i> Contatos de Apoio</span>
+                                    <button type="button" class="btn btn-sm btn-outline-success" onclick="addApoio()">
+                                        <i class="fas fa-plus"></i> Adicionar
+                                    </button>
                                 </h6>
-                                <div class="row g-2">
-                                    @if (Model.CurrentItem.NumerosDeApoio != null && Model.CurrentItem.NumerosDeApoio.Count > 0)
+
+                                <div id="container-apoio" class="row g-2">
+                                    @if (Model.CurrentItem.NumerosDeApoio != null)
                                     {
                                         var apoios = Model.CurrentItem.NumerosDeApoio.ToList();
                                         for (int i = 0; i < apoios.Count; i++)
                                         {
-                                            <input type="hidden" name="NumerosDeApoio[@i].Id" value="@apoios[i].Id" />
-                                            <div class="col-md-5">
-                                                <label class="small text-muted">Tipo (Ex: Pai, Amigo)</label>
-                                                <input name="NumerosDeApoio[@i].Tipo" value="@apoios[i].Nome" class="form-control form-control-sm" />
-                                            </div>
-                                            <div class="col-md-7">
-                                                <label class="small text-muted">Número</label>
-                                                <input name="NumerosDeApoio[@i].Numero" value="@apoios[i].Numero" class="form-control form-control-sm cel-mask" />
+                                            <div class="row g-2 item-apoio mb-2" data-index="@i">
+                                                <input type="hidden" name="CurrentItem.NumerosDeApoio[@i].Id" value="@apoios[i].Id" />
+                                                <div class="col-md-4">
+                                                    <label class="small text-muted">Tipo (Ex: Pai)</label>
+                                                    <input name="CurrentItem.NumerosDeApoio[@i].Nome" value="@apoios[i].Nome" class="form-control form-control-sm" required />
+                                                </div>
+                                                <div class="col-md-6">
+                                                    <label class="small text-muted">Número</label>
+                                                    <input name="CurrentItem.NumerosDeApoio[@i].Numero" value="@apoios[i].Numero" class="form-control form-control-sm cel-mask" required />
+                                                </div>
+                                                <div class="col-md-2 d-flex align-items-end">
+                                                    <button type="button" class="btn btn-sm btn-outline-danger w-100" onclick="removeApoio(this)">
+                                                        <i class="fas fa-trash"></i>
+                                                    </button>
+                                                </div>
                                             </div>
                                         }
-                                    }
-                                    else
-                                    {
-                                        <div class="col-12">
-                                            <p class="text-muted small italic">Nenhum número de apoio cadastrado.</p>
-                                        </div>
                                     }
                                 </div>
                             </div>
@@ -125,5 +130,59 @@
     </div>
 </div>
 
+@section Scripts {
+    <script>
+        function addApoio() {
+            const container = document.getElementById('container-apoio');
+            // Conta quantos itens já existem para definir o próximo índice
+            const index = container.querySelectorAll('.item-apoio').length;
 
+            const html = `
+                <div class="row g-2 item-apoio mb-2" data-index="${index}">
+                    <input type="hidden" name="CurrentItem.NumerosDeApoio[${index}].Id" value="0" />
+                    <div class="col-md-4">
+                        <label class="small text-muted">Tipo (Ex: Pai)</label>
+                        <input name="CurrentItem.NumerosDeApoio[${index}].Nome" class="form-control form-control-sm" required />
+                    </div>
+                    <div class="col-md-6">
+                        <label class="small text-muted">Número</label>
+                        <input name="CurrentItem.NumerosDeApoio[${index}].Numero" class="form-control form-control-sm cel-mask" required />
+                    </div>
+                    <div class="col-md-2 d-flex align-items-end">
+                        <button type="button" class="btn btn-sm btn-outline-danger w-100" onclick="removeApoio(this)">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                    </div>
+                </div>
+            `;
+
+            container.insertAdjacentHTML('beforeend', html);
+
+            // Re-inicializa máscaras de telefone se você estiver usando alguma lib como jQuery Mask
+            if(typeof $('.cel-mask').mask === "function") {
+                $('.cel-mask').mask('(00) 00000-0000');
+            }
+        }
+
+        function removeApoio(btn) {
+            const item = btn.closest('.item-apoio');
+            item.remove();
+            reindexApoios();
+        }
+
+        function reindexApoios() {
+            const items = document.querySelectorAll('.item-apoio');
+            items.forEach((item, index) => {
+                item.setAttribute('data-index', index);
+                item.querySelectorAll('input').forEach(input => {
+                    // Atualiza o nome para manter a sequência [0], [1], [2]...
+                    const name = input.getAttribute('name');
+                    if(name) {
+                        input.setAttribute('name', name.replace(/\[\d+\]/, `[${index}]`));
+                    }
+                });
+            });
+        }
+    </script>
+}
 
