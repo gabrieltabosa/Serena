@@ -11,13 +11,7 @@ using Serena.Models.DTOs;
 
 namespace Serena.Service
 {
-    /// <summary>
-    /// Client responsável APENAS por comunicar com a API de Usuário.
-    /// ❌ NÃO gerencia sessão
-    /// ❌ NÃO controla login
-    /// ❌ NÃO guarda senha
-    /// ✅ Apenas faz chamadas HTTP + cache temporário por sessão
-    /// </summary>
+    
     public class UserApiClient : IUserApiClient
     {
         private readonly HttpClient _http;

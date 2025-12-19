@@ -27,7 +27,7 @@ namespace Serena.Models
         [DataType(DataType.Date)]
         public DateTime? DataNascimento { get; set; }
 
-        public EnderecoViewModel Endereco { get; set; }
+        public EnderecoViewModel? Endereco { get; set; }
 
         public ICollection<ApoioViewModel>? NumerosDeApoio { get; set; }
 

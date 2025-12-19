@@ -4,7 +4,7 @@
     {
         public int Id { get; set; }
         public string Descricao { get; set; } = string.Empty;
-        public int UsuarioId { get; set; }
+        public int? UsuarioId { get; set; }
         public string? NomeDenunciante { get; set; }
         public string? Cpf { get; set; }
         public EnderecoViewModel Endereco { get; set; }

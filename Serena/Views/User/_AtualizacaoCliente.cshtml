@@ -13,6 +13,7 @@
                     <div class="row">
                         <div class="col-md-7">
                             <div class="row g-3">
+                                <input type="hidden" asp-for="CurrentItem.Endereco.Id" />
                                 <div class="col-12">
                                     <label asp-for="CurrentItem.Name" class="form-label"></label>
                                     <input asp-for="CurrentItem.Name" class="form-control" />
@@ -29,7 +30,7 @@
                                     <input asp-for="CurrentItem.Telefone" class="form-control cel-mask" />
                                     <span asp-validation-for="CurrentItem.Telefone" class="text-danger"></span>
                                 </div>
-
+                                
                                 <div class="col-md-6">
                                     <label asp-for="CurrentItem.Cpf" class="form-label"></label>
                                     <input asp-for="CurrentItem.Cpf" class="form-control cpf-mask bg-light" readonly />

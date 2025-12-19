@@ -152,17 +152,12 @@ namespace Serena.Controllers
             if (!SessaoValida(model.SessionId))
                 return RedirectToAction(nameof(Index));
 
-            if (!ModelState.IsValid)
-            {
-                model.ActiveView = DashboardViewType.Atualizacao;
-                return View(model);
-                
-            }
-
-            await _userApiClient.UpdateAsync(model.CurrentItem.Id, model.CurrentItem);
             
 
-            return RedirectToAction(nameof(Edit), new { userId = model.CurrentItem.Id, sessionId = model.SessionId });
+            model.CurrentItem = await _userApiClient.UpdateAsync(model.CurrentItem.Id, model.CurrentItem);
+            
+            model.ActiveView = DashboardViewType.Atualizacao;
+            return View("Index", model);
         }
 
         
