@@ -155,9 +155,9 @@ namespace Serena.Controllers
                 return RedirectToAction(nameof(Index));
 
             
-
+            
             model.CurrentItem = await _userApiClient.UpdateAsync(model.CurrentItem.Id, model.CurrentItem, model.SessionId);
-            Console.WriteLine($"o nome do usuario atualizado é: {model.CurrentItem.Name}");
+            
             
             model.ActiveView = DashboardViewType.Atualizacao;
             return View("Index", model);

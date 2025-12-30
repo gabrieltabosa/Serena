@@ -10,6 +10,6 @@ namespace Serena.Models
         public string Nome { get; set; }
 
         [Display(Name = "Número")]
-        public string Numero { get; set; }
+        public string Telefone { get; set; }
     }
 }

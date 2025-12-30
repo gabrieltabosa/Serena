@@ -66,7 +66,7 @@
                                                 </div>
                                                 <div class="col-md-6">
                                                     <label class="small text-muted">Número</label>
-                                                    <input name="CurrentItem.NumerosDeApoio[@i].Numero" value="@apoios[i].Numero" class="form-control form-control-sm cel-mask" required />
+                                                    <input name="CurrentItem.NumerosDeApoio[@i].Telefone" value="@apoios[i].Telefone" class="form-control form-control-sm cel-mask" required />
                                                 </div>
                                                 <div class="col-md-2 d-flex align-items-end">
                                                     <button type="button" class="btn btn-sm btn-outline-danger w-100" onclick="removeApoio(this)">
@@ -129,60 +129,67 @@
         </div>
     </div>
 </div>
+<script>
+    function addApoio() {
+        const container = document.getElementById('container-apoio');
+        const index = container.querySelectorAll('.item-apoio').length;
 
-@section Scripts {
-    <script>
-        function addApoio() {
-            const container = document.getElementById('container-apoio');
-            // Conta quantos itens já existem para definir o próximo índice
-            const index = container.querySelectorAll('.item-apoio').length;
-
-            const html = `
-                <div class="row g-2 item-apoio mb-2" data-index="${index}">
-                    <input type="hidden" name="CurrentItem.NumerosDeApoio[${index}].Id" value="0" />
-                    <div class="col-md-4">
-                        <label class="small text-muted">Tipo (Ex: Pai)</label>
-                        <input name="CurrentItem.NumerosDeApoio[${index}].Nome" class="form-control form-control-sm" required />
-                    </div>
-                    <div class="col-md-6">
-                        <label class="small text-muted">Número</label>
-                        <input name="CurrentItem.NumerosDeApoio[${index}].Numero" class="form-control form-control-sm cel-mask" required />
-                    </div>
-                    <div class="col-md-2 d-flex align-items-end">
-                        <button type="button" class="btn btn-sm btn-outline-danger w-100" onclick="removeApoio(this)">
-                            <i class="fas fa-trash"></i>
-                        </button>
-                    </div>
+        const html = `
+            <div class="row g-2 item-apoio mb-2" data-index="${index}">
+                <input type="hidden" name="CurrentItem.NumerosDeApoio[${index}].Id" value="0" />
+                <div class="col-md-4">
+                    <label class="small text-muted">Tipo (Ex: Pai)</label>
+                    <input name="CurrentItem.NumerosDeApoio[${index}].Nome" class="form-control form-control-sm" required placeholder="Ex: Pai" />
+                    <span class="text-danger field-validation-valid" data-valmsg-for="CurrentItem.NumerosDeApoio[${index}].Nome" data-valmsg-replace="true"></span>
                 </div>
-            `;
+                <div class="col-md-6">
+                    <label class="small text-muted">Telefone</label>
+                    <input name="CurrentItem.NumerosDeApoio[${index}].Telefone" class="form-control form-control-sm cel-mask" required placeholder="(00) 00000-0000" />
+                    <span class="text-danger field-validation-valid" data-valmsg-for="CurrentItem.NumerosDeApoio[${index}].Telefone" data-valmsg-replace="true"></span>
+                </div>
+                <div class="col-md-2 d-flex align-items-end">
+                    <button type="button" class="btn btn-sm btn-outline-danger w-100" onclick="removeApoio(this)">
+                        <i class="fas fa-trash"></i>
+                    </button>
+                </div>
+            </div>
+        `;
 
-            container.insertAdjacentHTML('beforeend', html);
+        container.insertAdjacentHTML('beforeend', html);
 
-            // Re-inicializa máscaras de telefone se você estiver usando alguma lib como jQuery Mask
-            if(typeof $('.cel-mask').mask === "function") {
-                $('.cel-mask').mask('(00) 00000-0000');
-            }
+        // 1. Reaplicar Máscara
+        if(typeof $('.cel-mask').mask === "function") {
+            $('.cel-mask').mask('(00) 00000-0000');
         }
 
-        function removeApoio(btn) {
-            const item = btn.closest('.item-apoio');
-            item.remove();
-            reindexApoios();
+        // 2. IMPORTANTE: Reiniciar a validação do formulário para reconhecer os novos campos
+        const form = container.closest("form");
+        if (form) {
+            $(form).removeData("validator")    // Remove validador antigo
+                   .removeData("unobtrusiveValidation"); // Remove configurações antigas
+            $.validator.unobtrusive.parse(form); // Reanalisa o formulário com os novos campos
         }
+    }
 
-        function reindexApoios() {
-            const items = document.querySelectorAll('.item-apoio');
-            items.forEach((item, index) => {
-                item.setAttribute('data-index', index);
-                item.querySelectorAll('input').forEach(input => {
-                    // Atualiza o nome para manter a sequência [0], [1], [2]...
-                    const name = input.getAttribute('name');
-                    if(name) {
-                        input.setAttribute('name', name.replace(/\[\d+\]/, `[${index}]`));
-                    }
-                });
+    function removeApoio(btn) {
+        const item = btn.closest('.item-apoio');
+        item.remove();
+        reindexApoios();
+    }
+
+    function reindexApoios() {
+        const items = document.querySelectorAll('.item-apoio');
+        items.forEach((item, index) => {
+            item.setAttribute('data-index', index);
+            item.querySelectorAll('input').forEach(input => {
+                // Atualiza o nome para manter a sequência [0], [1], [2]...
+                const name = input.getAttribute('name');
+                if(name) {
+                    input.setAttribute('name', name.replace(/\[\d+\]/, `[${index}]`));
+                }
             });
-        }
-    </script>
-}
+        });
+    }
+</script>
+
 

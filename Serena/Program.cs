@@ -5,6 +5,8 @@ using System.Text.Json.Serialization;
 var builder = WebApplication.CreateBuilder(args);
 
 
+
+builder.WebHost.UseUrls("https://localhost:7171", "http://localhost:5159");
 // MVC + JSON
 
 builder.Services
@@ -46,6 +48,7 @@ builder.Services.AddScoped<IUserApiClient, UserApiClient>();
 builder.Services.AddScoped<IDenunciaService, DenunciaService>();
 
 var app = builder.Build();
+
 
 // Pipeline HTTP
 
