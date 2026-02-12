@@ -1,8 +1,8 @@
 ﻿using AutoMapper;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Logging;
-using Serena.Models;
-using Serena.Models.DTOs;
+using DominioSerena;
+using DominioSerena.DTOs;
 using System;
 using System.Net;
 using System.Net.Http;

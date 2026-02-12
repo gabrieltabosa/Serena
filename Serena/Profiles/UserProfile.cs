@@ -1,6 +1,6 @@
 ﻿using AutoMapper;
-using Serena.Models;
-using Serena.Models.DTOs;
+using DominioSerena;
+using DominioSerena.DTOs;
 
 namespace Serena.Profiles
 {

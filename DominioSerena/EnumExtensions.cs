@@ -1,0 +1,19 @@
+﻿using System.ComponentModel.DataAnnotations;
+using System.Reflection;
+
+namespace DominioSerena
+{
+    public static class EnumExtensions
+    {
+        public static string GetDisplayName(this Enum enumValue)
+        {
+            var displayAttribute = enumValue.GetType()
+                .GetMember(enumValue.ToString())
+                .First()
+                .GetCustomAttribute<DisplayAttribute>();
+
+            // Retorna o Name se existir, senão retorna o nome do enum padrão
+            return displayAttribute?.Name ?? enumValue.ToString();
+        }
+    }
+}

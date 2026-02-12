@@ -1,7 +1,7 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Caching.Memory;
-using Serena.Models;
+using DominioSerena;
 using Serena.Service;
 using System.Reflection;
 
@@ -131,7 +131,7 @@ namespace Serena.Controllers
             if (!SessaoValida(sessionId))
                 return RedirectToAction(nameof(Index));
 
-            // 🔑 Interface corrigida: agora exige sessionId
+            // exige sessionId
             var user = await _userApiClient.GetByIdAsync(userId, sessionId);
             if (user == null)
                 return RedirectToAction(nameof(Index));

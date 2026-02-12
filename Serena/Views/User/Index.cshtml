@@ -1,4 +1,4 @@
-﻿@model Serena.Models.DashboardViewModel<UserViewModel>
+﻿@model DominioSerena.DashboardViewModel<UserViewModel>
 
 @{
     ViewData["Title"] = Model.Title;
@@ -15,7 +15,7 @@
     {
         case DashboardViewType.Login:
             <div class="row justify-content-center">
-                <div class="col-md-6">
+                <div class="col-md-6">     
                     <partial name="_LoginUsuario" model="@Model.CurrentItem" />
                 </div>
             </div>
@@ -47,6 +47,6 @@
     @{
         await Html.RenderPartialAsync("_ValidationScriptsPartial");
     }
-    <script src="~/js/seu-script-acima.js"></script>
+    
 }
 

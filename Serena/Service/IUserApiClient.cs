@@ -1,4 +1,4 @@
-﻿using Serena.Models;
+﻿using DominioSerena;
 
 namespace Serena.Service
 {

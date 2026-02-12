@@ -1,0 +1,127 @@
+﻿@using System.ComponentModel.DataAnnotations;
+@inject HttpClient Http
+
+<EditForm Model="model" OnValidSubmit="CadastrarUsuario" FormName="cadastroForms">
+    <DataAnnotationsValidator />
+    <ValidationSummary class="text-danger alert alert-danger" role="alert" />
+
+    <h5 class="text-muted border-bottom pb-2">Dados Pessoais</h5>
+    <div class="row g-3 mb-4">
+        <div class="col-md-6">
+            <label for="Name" class="form-label">@nameof(model.Name)</label>
+            <InputText id="Name" @bind-Value="model.Name" class="form-control" placeholder="Nome Completo" />
+            <ValidationMessage For="@(() => model.Name)" class="text-danger small" />
+        </div>
+        <div class="col-md-6">
+            <label for="Email" class="form-label">E-mail</label>
+            <InputText id="Email" @bind-Value="model.Email" type="email" class="form-control" placeholder="email@exemplo.com" />
+            <ValidationMessage For="@(() => model.Email)" class="text-danger small" />
+        </div>
+        <div class="col-md-4">
+            <label for="Cpf" class="form-label">CPF</label>
+            <InputText id="Cpf" @bind-Value="model.Cpf" Mask="000.000.000-00" class="form-control" placeholder="000.000.000-00" />
+            <ValidationMessage For="@(() => model.Cpf)" class="text-danger small" />
+        </div>
+        <div class="col-md-4">
+            <label for="Rg" class="form-label">RG</label>
+            <InputText id="Rg" @bind-Value="model.Rg" class="form-control" maxlength="8" />
+            <ValidationMessage For="@(() => model.Rg)" class="text-danger small" />
+        </div>
+        <div class="col-md-4">
+            <label for="DataNascimento" class="form-label">Data de Nascimento</label>
+            <InputDate id="DataNascimento" @bind-Value="model.DataNascimento" class="form-control" />
+            <ValidationMessage For="@(() => model.DataNascimento)" class="text-danger small" />
+        </div>
+        <div class="col-md-6">
+            <label for="Telefone" class="form-label">Telefone</label>
+            <InputText id="Telefone" @bind-Value="model.Telefone" Mask="(00) 00000-0000" class="form-control" placeholder="(00) 00000-0000" />
+            <ValidationMessage For="@(() => model.Telefone)" class="text-danger small" />
+        </div>
+        <div class="col-md-6">
+            <label for="Password" class="form-label">Senha</label>
+            <InputText id="Password" @bind-Value="model.Password" class="form-control" />
+            <ValidationMessage For="@(() => model.Password)" class="text-danger small" />
+        </div>
+        <div class="col-md-6">
+            <label for="ConfirmPassword" class="form-label">Confirmar Senha</label>
+            <InputText id="ConfirmPassword" @bind-Value="confirmPassword" class="form-control" />
+			<ValidationMessage For="@(() => confirmPassword)" class="text-danger small" />
+            @* @if (!string.Equals(model.Password, confirmPassword, StringComparison.Ordinal))
+            {
+                <span class="text-danger small">As senhas não coincidem</span>
+            } *@
+        </div>
+    </div>
+
+    <h5 class="text-muted border-bottom pb-2">Endereço</h5>
+    <div class="row g-3 mb-4">
+        <div class="col-md-7">
+            <label for="Rua" class="form-label">Logradouro</label>
+            <InputText id="Rua" @bind-Value="model.Endereco.Rua" class="form-control" />
+            <ValidationMessage For="@(() => model.Endereco.Rua)" class="text-danger small" />
+        </div>
+        <div class="col-md-7">
+            <label for="Bairro" class="form-label">Bairro</label>
+            <InputText id="Bairro" @bind-Value="model.Endereco.Bairro" class="form-control" />
+            <ValidationMessage For="@(() => model.Endereco.Bairro)" class="text-danger small" />
+        </div>
+        <div class="col-md-3">
+            <label for="Estado" class="form-label">Estado</label>
+            <InputText id="Estado" @bind-Value="model.Endereco.Estado" class="form-control" />
+            <ValidationMessage For="@(() => model.Endereco.Estado)" class="text-danger small" />
+        </div>
+        <div class="col-md-7">
+            <label for="Cidade" class="form-label">Cidade</label>
+            <InputText id="Cidade" @bind-Value="model.Endereco.Cidade" class="form-control" />
+            <ValidationMessage For="@(() => model.Endereco.Cidade)" class="text-danger small" />
+        </div>
+        <div class="col-md-2">
+            <label for="Numero" class="form-label">Nº</label>
+            <InputNumber id="Numero" @bind-Value="model.Endereco.Numero" class="form-control" />
+            <ValidationMessage For="@(() => model.Endereco.Numero)" class="text-danger small" />
+        </div>
+    </div>
+
+    <div class="form-check mb-3">
+        <InputCheckbox id="RememberMe" @bind-Value="model.RememberMe" class="form-check-input" />
+        <label for="RememberMe" class="form-check-label">Lembrar-me</label>
+    </div>
+
+    <div class="mt-4">
+        <button type="submit" class="btn btn-success px-5" disabled="@isSubmitting">
+            @if (isSubmitting)
+            {
+                <span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+            }
+            Cadastrar
+        </button>
+        <a href="/User/Index" class="btn btn-link text-secondary">Já tenho conta</a>
+    </div>
+</EditForm>
+
+@code {
+
+    private UserViewModel model { get; set; } = new()
+    {
+       Endereco = new EnderecoViewModel()
+    };
+    [Compare("Usuario.Password",ErrorMessage ="As senhas precisam coincidir")]
+    private string confirmPassword { get; set; } = string.Empty;
+    private bool isSubmitting = false;
+    private void CadastrarUsuario()
+    {
+        try
+        {
+			isSubmitting = true;
+            var response = Http.PostAsJsonAsync("User/Create", model);
+
+        }
+        finally{
+            isSubmitting = false;
+		}
+    
+		
+	}
+
+
+}

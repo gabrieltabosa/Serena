@@ -1,5 +1,7 @@
-﻿using Serena.Profiles;
+﻿using Microsoft.AspNetCore.Components.Web;
+using Serena.Profiles;
 using Serena.Service;
+using SerenaBlazor;
 using System.Text.Json.Serialization;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -7,16 +9,20 @@ var builder = WebApplication.CreateBuilder(args);
 
 
 builder.WebHost.UseUrls("https://localhost:7171", "http://localhost:5159");
-// MVC + JSON
+
 
 builder.Services
     .AddControllersWithViews()
     .AddJsonOptions(options =>
     {
-        options.JsonSerializerOptions.Converters.Add(
-            new JsonStringEnumConverter()
-        );
+        options.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter());
+        options.JsonSerializerOptions.PropertyNameCaseInsensitive = true;
     });
+
+builder.Services.AddRazorComponents()
+    .AddInteractiveWebAssemblyComponents();
+
+
 
 // AutoMapper
 
@@ -47,6 +53,10 @@ builder.Services.AddMemoryCache();
 builder.Services.AddScoped<IUserApiClient, UserApiClient>();
 builder.Services.AddScoped<IDenunciaService, DenunciaService>();
 
+
+//Adiciona suporte a depuração/execução do Blazor
+builder.Services.AddRazorComponents();
+
 var app = builder.Build();
 
 
@@ -59,16 +69,25 @@ if (!app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
-app.UseStaticFiles();
+
+app.UseBlazorFrameworkFiles(); // Arquivos do engine Blazor
+app.UseStaticFiles(); //Arquivos estáticos (CSS, JS, imagens, etc)
+
+
 
 app.UseRouting();
 
-// ❌ NÃO usar autenticação/autorização
-// app.UseAuthentication();
-// app.UseAuthorization();
+// Necessário para componentes interativos no .NET 8
+app.UseAntiforgery();
+
+
 
 app.MapControllerRoute(
     name: "default",
     pattern: "{controller=User}/{action=Index}/{id?}");
+
+app.MapRazorComponents<App>()
+    .AddInteractiveWebAssemblyRenderMode()
+    .AddAdditionalAssemblies();
 
 app.Run();

@@ -1,6 +1,6 @@
 ﻿using Microsoft.AspNetCore.Mvc;
-using Serena.Models;
-using Serena.Models.DTOs;
+using DominioSerena;
+using DominioSerena.DTOs;
 using Serena.Service;
 using AutoMapper;
 using Microsoft.Extensions.Caching.Memory;

@@ -13,9 +13,14 @@
 
         <form asp-action="Delete" method="post" asp-route-userId="@Model.CurrentItem.Id" asp-route-sessionId="@Model.SessionId">
             <input type="hidden" asp-for="CurrentItem.Id" />
+
             <button type="submit" class="btn btn-danger btn-lg px-5 me-2">Sim, Excluir</button>
-            <a asp-action="Edit" asp-route-userId="@Model.UserId"
-               asp-route-sessionId="@Model.SessionId"> class="btn btn-light btn-lg px-5">Cancelar</a>
+
+            
+            <a asp-action="Edit"
+               asp-route-userId="@Model.UserId"
+               asp-route-sessionId="@Model.SessionId"
+               class="btn btn-light btn-lg px-5">Cancelar</a>
         </form>
     </div>
 </div>
